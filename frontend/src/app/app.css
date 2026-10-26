@@ -1,0 +1,18 @@
+.app-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.app-subtitle {
+  margin: 0.25rem 0 0;
+  color: #57606a;
+}
+
+.app-main {
+  padding: 1.5rem;
+}

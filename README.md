@@ -111,6 +111,27 @@ To build and run the tests (no database required):
 mvn verify
 ```
 
+## Frontend
+
+The web interface is an Angular application in `frontend/`. It requires Node.js 22 or later.
+
+With the API running on port 8080, start the development server:
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Open <http://localhost:4200>. Requests to `/api` are proxied to `http://localhost:8080` (see `frontend/proxy.conf.json`), so no CORS configuration is needed.
+
+To run the frontend tests and build:
+
+```bash
+npm test -- --watch=false
+npm run build
+```
+
 ## Project structure
 
 ```
