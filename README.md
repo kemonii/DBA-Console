@@ -1,2 +1,173 @@
 # DBA-Console
-Administration tool for Oracle 21c XE: backups, query tuning, security, auditing and tablespaces.
+
+A REST API for administering Oracle Database 21c Express Edition.
+
+## Overview
+
+DBA-Console exposes common database administration tasks for Oracle Database 21c XE through a consistent HTTP API. It is intended for database administrators who manage XE instances and want backup, performance, and security operations available from a single service. The API is independent of any client; a user interface is not part of this initial version.
+
+## Modules
+
+| Module | Description | Status |
+|---|---|---|
+| Backup & Recovery | Data Pump exports (`expdp`) by table, schema, or full database; recovery with `impdp` and Flashback. | Planned |
+| Query Tuning & Performance | Execution plans, optimizer statistics, and index maintenance; monitoring of the instance, sessions, and locks. | Planned |
+| Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Planned |
+| File Management | Oracle directory objects and the dump and log files stored in them. | Planned |
+
+The only endpoint available in this version is the health check described under [Getting started](#getting-started).
+
+## Tech stack
+
+- Java 17
+- Spring Boot 3.5 (Web, JDBC, Validation)
+- Spring `JdbcTemplate` for data access (no JPA or Hibernate: the application works with Oracle data dictionary views and DDL, where entity mapping adds nothing)
+- Oracle JDBC driver (`ojdbc11`)
+- Oracle Data Pump command-line utilities (`expdp`, `impdp`) for logical backups
+- springdoc-openapi for OpenAPI documentation and Swagger UI
+- JUnit 5 for testing
+- Maven
+
+## Prerequisites
+
+- JDK 17 or later
+- Maven 3.9 or later
+- Oracle Database 21c XE
+
+The application must run on the same host as the database. Backups invoke the `expdp` and `impdp` utilities, which must be available on the `PATH`, and the dump and log files they produce are written to the database server's file system.
+
+## Configuration
+
+The application reads its settings from environment variables. None of them have default values, and credentials must never be written to a committed file. See [`.env.example`](.env.example) for a template.
+
+| Variable | Description | Example |
+|---|---|---|
+| `DB_URL` | JDBC URL of the pluggable database service | `jdbc:oracle:thin:@//localhost:1521/XEPDB1` |
+| `DB_USER` | Database user with administrative privileges | `your_admin_user` |
+| `DB_PASS` | Password for `DB_USER` | `your_password` |
+| `DATAFILE_DIR` | Directory where new datafiles are created | `/opt/oracle/oradata/XE/XEPDB1` |
+
+`DB_URL` must point to the `XEPDB1` service (the pluggable database), not to the XE root container. Regular users without the `C##` prefix can only be created inside a pluggable database; connecting to the root container restricts you to common users.
+
+`DB_USER` needs administrative privileges, since the application reads `DBA_*` and `V$` views, runs DDL, and performs full database exports. In a lab environment, connecting as `SYSTEM` to `XEPDB1` is sufficient.
+
+Datafile locations differ between Windows and Linux installations, which is why `DATAFILE_DIR` is configurable.
+
+PowerShell:
+
+```powershell
+$env:DB_URL = "jdbc:oracle:thin:@//localhost:1521/XEPDB1"
+$env:DB_USER = "your_admin_user"
+$env:DB_PASS = "your_password"
+$env:DATAFILE_DIR = "C:\app\oracle\oradata\XE\XEPDB1"
+```
+
+CMD:
+
+```bat
+set DB_URL=jdbc:oracle:thin:@//localhost:1521/XEPDB1
+set DB_USER=your_admin_user
+set DB_PASS=your_password
+set DATAFILE_DIR=C:\app\oracle\oradata\XE\XEPDB1
+```
+
+bash:
+
+```bash
+export DB_URL="jdbc:oracle:thin:@//localhost:1521/XEPDB1"
+export DB_USER="your_admin_user"
+export DB_PASS="your_password"
+export DATAFILE_DIR="/opt/oracle/oradata/XE/XEPDB1"
+```
+
+## Getting started
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/kemonii/DBA-Console.git
+   cd DBA-Console
+   ```
+
+2. Set the environment variables described in [Configuration](#configuration).
+
+3. Start the application:
+
+   ```bash
+   mvn spring-boot:run
+   ```
+
+4. Open the API documentation at <http://localhost:8080/swagger-ui.html>.
+
+5. Verify the database connection:
+
+   ```bash
+   curl http://localhost:8080/api/health
+   ```
+
+To build and run the tests (no database required):
+
+```bash
+mvn verify
+```
+
+## Project structure
+
+```
+src/main/java/una/dbadmin
+├── DbAdminApplication.java
+├── common/                    Shared infrastructure
+│   ├── OperationResult.java
+│   ├── GlobalExceptionHandler.java
+│   ├── HealthController.java
+│   └── OracleIdentifiers.java
+├── backup/                    Backup & Recovery
+├── tuning/
+│   ├── queries/               Execution plans, statistics, indexes
+│   └── monitoring/            Instance, sessions, locks
+├── security/
+│   ├── tablespaces/           Tablespace management
+│   ├── auditing/              Auditing
+│   └── users/                 User management
+└── files/                     Backup file management
+```
+
+The code is organized by module rather than by layer. Each feature lives in its own package and contains its own controller and service, so contributors working on different modules rarely touch the same files. Code shared by all modules belongs in `common/`.
+
+## API conventions
+
+Every endpoint returns an `OperationResult` with the following fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `ok` | boolean | `true` if the operation succeeded |
+| `message` | string | Human-readable description of the outcome |
+| `data` | any | Response payload, or `null` when there is none |
+
+Successful response:
+
+```json
+{
+  "ok": true,
+  "message": "Database connection is available",
+  "data": null
+}
+```
+
+Errors use the same format with `ok` set to `false`. Invalid input returns HTTP 400. Database errors return HTTP 500 and keep the Oracle error code when one is available:
+
+```json
+{
+  "ok": false,
+  "message": "ORA-00942: table or view does not exist",
+  "data": null
+}
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for branching, pull request, and code conventions.
+
+## About
+
+This project was developed as the final project for the EIF-402 Database Administration course at Universidad Nacional, Costa Rica.
