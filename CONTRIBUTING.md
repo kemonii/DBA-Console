@@ -11,7 +11,7 @@
 ## Pull requests
 
 - Open a pull request to `main`. Direct pushes to `main` are not allowed.
-- Reference the related issue in the description with `Closes #n`.
+- Reference the related issue in the description. An issue can take several pull requests: use `Part of #n` in intermediate ones and `Closes #n` only in the pull request that completes the issue.
 - Keep pull requests small and focused on a single change.
 - Make sure `mvn verify` passes before requesting a review.
 

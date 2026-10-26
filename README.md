@@ -49,7 +49,7 @@ The application reads its settings from environment variables. None of them have
 
 `DB_URL` must point to the `XEPDB1` service (the pluggable database), not to the XE root container. Regular users without the `C##` prefix can only be created inside a pluggable database; connecting to the root container restricts you to common users.
 
-`DB_USER` needs administrative privileges, since the application reads `DBA_*` and `V$` views, runs DDL, and performs full database exports. In a lab environment, connecting as `SYSTEM` to `XEPDB1` is sufficient.
+`DB_USER` needs administrative privileges, since the application reads `DBA_*` and `V$` views, runs DDL, and performs full database exports. On a local installation, connecting as `SYSTEM` to `XEPDB1` is sufficient.
 
 Datafile locations differ between Windows and Linux installations, which is why `DATAFILE_DIR` is configurable.
 
