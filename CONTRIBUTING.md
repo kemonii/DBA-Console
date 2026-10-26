@@ -17,9 +17,12 @@
 
 ## Commit messages
 
-- Write a short subject in the imperative mood, for example `Add tablespace listing endpoint`.
-- Keep the subject under about 72 characters and leave out the trailing period.
-- Add a body after a blank line when the change needs explanation.
+Commit messages and issue titles follow [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): description`.
+
+- **Type:** `feat` (new functionality), `fix` (bug fix), `docs` (documentation only), `test` (tests only), `refactor` (code change with no behavior change), or `chore` (build, configuration, maintenance).
+- **Scope:** the module affected: `backup`, `tuning`, `security`, `files`, `common`, or `frontend`. Omit it when the change spans several modules.
+- **Description:** short, imperative, lowercase, without a trailing period, for example `feat(security): add tablespace listing endpoint`.
+- Keep the first line under about 72 characters, and add a body after a blank line when the change needs explanation.
 
 ## Code conventions
 
