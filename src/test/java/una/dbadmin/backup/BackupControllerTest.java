@@ -44,6 +44,19 @@ class BackupControllerTest {
     }
 
     @Test
+    void tableFiltersInTheJsonReachTheService() throws Exception {
+        when(service.backup(any())).thenReturn(new BackupResult(true, 0, "expdp", List.of()));
+        String body = """
+                {"type":"SCHEMA","schema":"hr","directory":"respaldo","fileName":"hr","excludeTables":["audit_log"]}""";
+
+        mvc.perform(post("/api/backup").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk());
+
+        verify(service).backup(
+                new BackupRequest(BackupType.SCHEMA, "hr", null, "respaldo", "hr", null, List.of("audit_log")));
+    }
+
+    @Test
     void failedBackupReturnsServerErrorWithOutput() throws Exception {
         when(service.backup(any())).thenReturn(
                 new BackupResult(false, 1, "expdp system/******@//localhost:1521/XEPDB1", List.of("ORA-39002")));

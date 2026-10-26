@@ -20,9 +20,11 @@ final class DataPumpCommands {
      * @param logSuffix   appended to the file name to form the log file, e.g. {@code .log}
      * @param credentials {@code user/password@connectIdentifier}
      * @param masked      the same credentials with the password hidden
+     * @param parfileLines already validated parameters to be written to a parameter file
      */
     static DataPumpCommand build(String tool, String operation, String logSuffix, String credentials, String masked,
-                                 BackupType type, String schema, String table, String directory, String fileName) {
+                                 BackupType type, String schema, String table, String directory, String fileName,
+                                 List<String> parfileLines) {
         if (type == null) {
             throw new IllegalArgumentException("Type is required for a " + operation);
         }
@@ -39,7 +41,8 @@ final class DataPumpCommands {
 
         List<String> display = new ArrayList<>(args);
         display.set(1, masked);
-        return new DataPumpCommand(List.copyOf(args), String.join(" ", display));
+        display.addAll(parfileLines);
+        return new DataPumpCommand(List.copyOf(args), String.join(" ", display), List.copyOf(parfileLines));
     }
 
     private static String scopeParameter(BackupType type, String schema, String table, String operation) {
