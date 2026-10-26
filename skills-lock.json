@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "db": {
+      "source": "oracle/skills",
+      "sourceType": "github",
+      "skillPath": "db/SKILL.md",
+      "computedHash": "a51b52cc181859630ddffd8beb3f8d885cb3bd8237ac2df509bee0dc42222e0a"
+    },
     "java-springboot": {
       "source": "github/awesome-copilot",
       "sourceType": "github",
@@ -24,6 +30,12 @@
       "sourceType": "github",
       "skillPath": "skills/springboot-tdd/SKILL.md",
       "computedHash": "37566744c3850a2bc683ea1734c4ecf67d84c7604e6b3df57b76e978479edfc8"
+    },
+    "sql-optimization-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/developer-essentials/skills/sql-optimization-patterns/SKILL.md",
+      "computedHash": "6f9779817c6f1b077347687c2b16e884506a519d0c2a3eaa2c320709bf273139"
     }
   }
 }
