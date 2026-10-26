@@ -17,7 +17,7 @@ class ExpdpCommandBuilderTest {
 
     @Test
     void tableBackupUsesTablesParameter() {
-        ExpdpCommand command = builder.build(new BackupRequest(BackupType.TABLE, "hr", "employees", "respaldo", "emp"));
+        DataPumpCommand command = builder.build(new BackupRequest(BackupType.TABLE, "hr", "employees", "respaldo", "emp"));
 
         assertEquals(List.of("expdp", "system/s3cret@" + CONNECT, "TABLES=HR.EMPLOYEES", "DIRECTORY=RESPALDO",
                 "DUMPFILE=emp.dmp", "LOGFILE=emp.log"), command.args());
@@ -25,7 +25,7 @@ class ExpdpCommandBuilderTest {
 
     @Test
     void schemaBackupUsesSchemasParameter() {
-        ExpdpCommand command = builder.build(new BackupRequest(BackupType.SCHEMA, "hr", null, "respaldo", "hr_full"));
+        DataPumpCommand command = builder.build(new BackupRequest(BackupType.SCHEMA, "hr", null, "respaldo", "hr_full"));
 
         assertTrue(command.args().contains("SCHEMAS=HR"));
         assertTrue(command.args().contains("DUMPFILE=hr_full.dmp"));
@@ -34,7 +34,7 @@ class ExpdpCommandBuilderTest {
 
     @Test
     void fullBackupUsesFullParameter() {
-        ExpdpCommand command = builder.build(new BackupRequest(BackupType.FULL, null, null, "respaldo", "everything"));
+        DataPumpCommand command = builder.build(new BackupRequest(BackupType.FULL, null, null, "respaldo", "everything"));
 
         assertTrue(command.args().contains("FULL=Y"));
         assertFalse(command.args().stream().anyMatch(a -> a.startsWith("TABLES=") || a.startsWith("SCHEMAS=")));
@@ -42,7 +42,7 @@ class ExpdpCommandBuilderTest {
 
     @Test
     void displayCommandHidesThePassword() {
-        ExpdpCommand command = builder.build(new BackupRequest(BackupType.SCHEMA, "hr", null, "respaldo", "hr"));
+        DataPumpCommand command = builder.build(new BackupRequest(BackupType.SCHEMA, "hr", null, "respaldo", "hr"));
 
         assertFalse(command.display().contains("s3cret"));
         assertTrue(command.display().startsWith("expdp system/******@" + CONNECT));
