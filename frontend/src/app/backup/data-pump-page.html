@@ -1,0 +1,92 @@
+<section class="page">
+  <h2>{{ title() }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Scope
+      <select name="type" formControlName="type">
+        <option value="TABLE">Table</option>
+        <option value="SCHEMA">Schema</option>
+        <option value="FULL">Full database</option>
+      </select>
+    </label>
+
+    @if (scope() !== 'FULL') {
+      <label>
+        Schema
+        <input name="schema" formControlName="schema" autocomplete="off" />
+      </label>
+    }
+    @if (scope() === 'TABLE') {
+      <label>
+        Table
+        <input name="table" formControlName="table" autocomplete="off" />
+      </label>
+    }
+
+    <label>
+      Directory object
+      <input name="directory" formControlName="directory" autocomplete="off" />
+    </label>
+    <label>
+      File name (without extension)
+      <input name="fileName" formControlName="fileName" autocomplete="off" />
+    </label>
+
+    @if (canFilter()) {
+      <label>
+        Tables
+        <select name="filterKind" formControlName="filterKind">
+          <option value="none">All tables</option>
+          <option value="include">Only these tables</option>
+          <option value="exclude">All except these tables</option>
+        </select>
+      </label>
+      @if (filterKind() !== 'none') {
+        <label>
+          Table names, separated by commas
+          <textarea name="filterTables" formControlName="filterTables" rows="2"></textarea>
+        </label>
+      }
+    }
+
+    @if (isFullRecovery()) {
+      <p class="warning">
+        A full recovery overwrites the whole database. Run it only on purpose and never during a demo.
+      </p>
+      <label class="inline">
+        <input type="checkbox" name="confirmFull" formControlName="confirmFull" />
+        I understand and want to run a full recovery
+      </label>
+    }
+
+    <button type="submit" [disabled]="busy()">{{ busy() ? 'Running…' : title() }}</button>
+  </form>
+
+  @if (validation(); as message) {
+    <p class="error">{{ message }}</p>
+  }
+
+  @if (result(); as outcome) {
+    @if (outcome.ok) {
+      <p class="success">{{ outcome.message }}</p>
+    } @else {
+      <p class="error">{{ outcome.message }}</p>
+    }
+    @if (outcome.data; as run) {
+      <h3>Command</h3>
+      <pre class="command">{{ run.command }}</pre>
+      <h3>Output</h3>
+      <pre class="output">{{ run.output.join('\n') }}</pre>
+      <button type="button" class="view-log" (click)="viewLog()">View log</button>
+    }
+  }
+
+  @if (logLines(); as lines) {
+    <h3>Log file</h3>
+    <pre class="log">{{ lines.join('\n') }}</pre>
+  }
+  @if (logError(); as message) {
+    <p class="log-error error">{{ message }}</p>
+  }
+</section>

@@ -28,4 +28,12 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('main router-outlet')).not.toBeNull();
   });
+
+  it('should link to the backup screens', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const links = Array.from(compiled.querySelectorAll('nav a')).map((a) => a.textContent?.trim());
+    expect(links).toEqual(['Backup', 'Recovery', 'Flashback']);
+  });
 });

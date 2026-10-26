@@ -1,0 +1,78 @@
+<section class="page restore-table">
+  <h2>Flashback table</h2>
+  <p class="hint">Brings back a dropped table from the recycle bin.</p>
+
+  <form [formGroup]="tableForm" (ngSubmit)="restoreTable()">
+    <label>
+      Schema
+      <input name="schema" formControlName="schema" autocomplete="off" />
+    </label>
+    <label>
+      Table
+      <input name="table" formControlName="table" autocomplete="off" />
+    </label>
+    <button type="submit">Restore table</button>
+  </form>
+
+  @if (tableOutcome(); as outcome) {
+    <p [class]="outcome.ok ? 'success' : 'error'">{{ outcome.message }}</p>
+  }
+</section>
+
+<section class="page rows">
+  <h2>Flashback query</h2>
+  <p class="hint">Shows the rows a table had at an earlier moment, and can insert the ones that are missing now.</p>
+
+  <form [formGroup]="rowsForm" (ngSubmit)="preview()">
+    <label>
+      Schema
+      <input name="schema" formControlName="schema" autocomplete="off" />
+    </label>
+    <label>
+      Table
+      <input name="table" formControlName="table" autocomplete="off" />
+    </label>
+    <label>
+      As of
+      <input type="datetime-local" name="timestamp" formControlName="timestamp" />
+    </label>
+    <div class="actions">
+      <button type="button" class="preview" (click)="preview()">Preview rows</button>
+      <button type="button" class="restore" (click)="restoreRows()">Restore missing rows</button>
+    </div>
+  </form>
+
+  @if (rowsOutcome(); as outcome) {
+    <p [class]="outcome.ok ? 'success' : 'error'">{{ outcome.message }}</p>
+  }
+
+  @if (rows(); as found) {
+    <div class="rows-result">
+      @if (found.length === 0) {
+        <p>No rows at that moment.</p>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              @for (column of columns(); track column) {
+                <th>{{ column }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of found; track $index) {
+              <tr>
+                @for (column of columns(); track column) {
+                  <td>{{ row[column] }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (found.length === 100) {
+          <p class="hint">Showing the first 100 rows.</p>
+        }
+      }
+    </div>
+  }
+</section>

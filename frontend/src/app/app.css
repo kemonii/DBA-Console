@@ -13,6 +13,22 @@
   color: #57606a;
 }
 
+.app-nav {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.app-nav a {
+  color: #0969da;
+  text-decoration: none;
+}
+
+.app-nav a.active {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .app-main {
   padding: 1.5rem;
 }
