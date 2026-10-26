@@ -1,12 +1,6 @@
 {
   "version": 1,
   "skills": {
-    "github-issues": {
-      "source": "github/awesome-copilot",
-      "sourceType": "github",
-      "skillPath": "skills/github-issues/SKILL.md",
-      "computedHash": "7c576643e9d3c622f18526a5554e8533410049dfc77e9bb10328081c4ea53d8c"
-    },
     "java-springboot": {
       "source": "github/awesome-copilot",
       "sourceType": "github",
@@ -30,12 +24,6 @@
       "sourceType": "github",
       "skillPath": "skills/springboot-tdd/SKILL.md",
       "computedHash": "37566744c3850a2bc683ea1734c4ecf67d84c7604e6b3df57b76e978479edfc8"
-    },
-    "user-stories": {
-      "source": "phuryn/pm-skills",
-      "sourceType": "github",
-      "skillPath": "pm-execution/skills/user-stories/SKILL.md",
-      "computedHash": "f430b0828102f2f54eb5d1658726e8feaacae9f04afad6ab56e5d6334e4f7dd7"
     }
   }
 }
