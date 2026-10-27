@@ -93,6 +93,27 @@ describe('FlashbackPage', () => {
     expect(root.querySelector('.rows-result tbody')?.textContent).toContain('Bob');
   });
 
+  it('shows dates in local time instead of the raw ISO string, and leaves other values alone', async () => {
+    await fillRows();
+    const hired = '2026-10-27T19:31:36.000+00:00';
+
+    await click('.rows button.preview');
+    http.expectOne('/api/flashback/query').flush({
+      ok: true,
+      message: 'Rows as of ...',
+      data: [{ ID: 1, NAME: '2026-10 report', HIRED: hired, LEFT: null }],
+    });
+    await settle();
+
+    const local = new Date(hired);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const expected =
+      `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())} ` +
+      `${pad(local.getHours())}:${pad(local.getMinutes())}:${pad(local.getSeconds())}`;
+    const cells = Array.from(root.querySelectorAll('.rows-result tbody td')).map((td) => td.textContent?.trim());
+    expect(cells).toEqual(['1', '2026-10 report', expected, '']);
+  });
+
   it('says so when there are no rows to show', async () => {
     await fillRows();
 

@@ -110,6 +110,18 @@ describe('DataPumpPage', () => {
     expect(root.querySelector('.output')?.textContent).toContain('Job completed');
   });
 
+  it('tells the user that a run can take a while, only while it is running', async () => {
+    await create('backup');
+    await fillSchemaBackup();
+
+    await submit();
+    expect(root.querySelector('.running')?.textContent).toContain('can take a minute');
+
+    http.expectOne('/api/backup').flush(runResult('expdp', []));
+    await settle();
+    expect(root.querySelector('.running')).toBeNull();
+  });
+
   it('shows the message and the output of a failed run', async () => {
     await create('backup');
     await fillSchemaBackup();

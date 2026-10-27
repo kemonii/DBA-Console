@@ -75,6 +75,9 @@
 </form>
 
 <section aria-live="polite">
+  @if (loading()) {
+    <p class="running" role="status">Running. This can take a minute or more, so keep this page open.</p>
+  }
   @if (outcome(); as result) {
     <p [class]="result.ok ? 'success' : 'error'" [attr.role]="result.ok ? null : 'alert'">{{ result.message }}</p>
   }

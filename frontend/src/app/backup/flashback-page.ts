@@ -5,6 +5,9 @@ import { ApiError } from '../core/api-error';
 import { BackupApi } from './backup-api';
 import { Row } from './backup.models';
 
+/** `2026-10-27T19:31:36.000+00:00`, `2026-10-27T19:31:36Z` or with another offset; the offset is required. */
+const ISO_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
+
 interface Outcome {
   ok: boolean;
   message: string;
@@ -89,6 +92,27 @@ export class FlashbackPage {
         this.busy.set(false);
       }
     });
+  }
+
+  /**
+   * The API serializes dates as ISO strings in UTC (`2026-10-27T19:31:36.000+00:00`). Show them in the browser's time
+   * zone, which is where the person using the screen expects them; any other value is shown as it is.
+   */
+  protected cell(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    if (typeof value === 'string' && ISO_DATE_TIME.test(value)) {
+      const date = new Date(value);
+      if (!Number.isNaN(date.getTime())) {
+        const pad = (n: number) => String(n).padStart(2, '0');
+        return (
+          `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+          `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+        );
+      }
+    }
+    return String(value);
   }
 
   private rowsRequest() {
