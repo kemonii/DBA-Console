@@ -43,3 +43,7 @@ buildNumber.properties
 
 # Local reference material (not part of the repository)
 docs/
+
+# AI assistant skills (install them in your user profile, not in the repository)
+.claude/skills/
+skills-lock.json
