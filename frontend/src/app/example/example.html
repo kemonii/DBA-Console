@@ -1,0 +1,34 @@
+<h1>Example screen</h1>
+<p>Sends a GET request to the backend and shows the <code>OperationResult</code> it returns.</p>
+
+<form (submit)="onSubmit($event)" novalidate>
+  <label for="path">Endpoint path</label>
+  <div class="row">
+    <span aria-hidden="true">/api/</span>
+    <input id="path" type="text" [formField]="requestForm.path" />
+    <button type="submit" [disabled]="loading()">Send</button>
+  </div>
+  @if (requestForm.path().touched() && requestForm.path().errors().length) {
+    <p class="error" role="alert">{{ requestForm.path().errors()[0].message }}</p>
+  }
+</form>
+
+<section aria-live="polite">
+  @if (loading()) {
+    <p>Loading...</p>
+  }
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+  @if (result(); as response) {
+    <h2>Result</h2>
+    <dl class="result" [attr.data-ok]="response.ok">
+      <dt>ok</dt>
+      <dd>{{ response.ok }}</dd>
+      <dt>message</dt>
+      <dd>{{ response.message }}</dd>
+      <dt>data</dt>
+      <dd>{{ response.data === null ? 'null' : (response.data | json) }}</dd>
+    </dl>
+  }
+</section>
