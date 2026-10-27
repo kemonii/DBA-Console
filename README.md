@@ -4,7 +4,7 @@ A REST API for administering Oracle Database 21c Express Edition.
 
 ## Overview
 
-DBA-Console exposes common database administration tasks for Oracle Database 21c XE through a consistent HTTP API. It is intended for database administrators who manage XE instances and want backup, performance, and security operations available from a single service. The API is independent of any client; a user interface is not part of this initial version.
+DBA-Console exposes common database administration tasks for Oracle Database 21c XE through a consistent HTTP API. It is intended for database administrators who manage XE instances and want backup, performance, and security operations available from a single service. The API is independent of any client, and an Angular frontend in [`frontend/`](frontend) provides the user interface.
 
 ## Modules
 
@@ -15,7 +15,7 @@ DBA-Console exposes common database administration tasks for Oracle Database 21c
 | Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Planned |
 | File Management | Oracle directory objects and the dump and log files stored in them. | Planned |
 
-The only endpoint available in this version is the health check described under [Getting started](#getting-started).
+The only endpoint available in this version is the health check described under [Getting started](#getting-started). The frontend has an empty page for each module and one example screen.
 
 ## Tech stack
 
@@ -27,12 +27,14 @@ The only endpoint available in this version is the health check described under 
 - springdoc-openapi for OpenAPI documentation and Swagger UI
 - JUnit 5 for testing
 - Maven
+- Angular 22 (standalone components, signals, Signal Forms) with Vitest for the frontend
 
 ## Prerequisites
 
 - JDK 17 or later
 - Maven 3.9 or later
 - Oracle Database 21c XE
+- Node.js 22.22.3+, 24.15+, or 26+ (odd-numbered versions 23 and 25 are not supported) and npm (frontend only)
 
 The application must run on the same host as the database. Backups invoke the `expdp` and `impdp` utilities, which must be available on the `PATH`, and the dump and log files they produce are written to the database server's file system.
 
@@ -105,10 +107,28 @@ export DATAFILE_DIR="/opt/oracle/oradata/XE/XEPDB1"
    curl http://localhost:8080/api/health
    ```
 
-To build and run the tests (no database required):
+6. Start the frontend in a second terminal (the backend must be running):
+
+   ```bash
+   cd frontend
+   npm install
+   npm start
+   ```
+
+   Open <http://localhost:4200>. The development server proxies every `/api` request to the backend on port 8080 (see `frontend/proxy.conf.json`), so no CORS configuration is needed. The header shows whether the backend can reach the database.
+
+To build and run the backend tests (no database required):
 
 ```bash
 mvn verify
+```
+
+To build and run the frontend tests:
+
+```bash
+cd frontend
+npm test -- --no-watch
+npm run build
 ```
 
 ## Project structure
@@ -130,9 +150,20 @@ src/main/java/una/dbadmin
 │   ├── auditing/              Auditing
 │   └── users/                 User management
 └── files/                     Backup file management
+
+frontend/src/app
+├── core/                      API client, OperationResult model, health monitor
+├── layout/                    Application shell, navigation menu, connection status
+├── backup/                    Backup & Recovery page and routes
+├── tuning/                    Query Tuning & Performance page and routes
+├── security/                  Security page and routes
+├── files/                     File Management page and routes
+└── example/                   Reference screen (form, API call, result) to copy
 ```
 
-The code is organized by module rather than by layer. Each feature lives in its own package and contains its own controller and service, so contributors working on different modules rarely touch the same files. Code shared by all modules belongs in `common/`.
+The frontend follows the same idea. Each module folder under `frontend/src/app` holds its own page and a `<module>.routes.ts` file that the application loads lazily, so each person edits only their own folder. To build a screen, copy the pattern in `example/` and call the API through `ApiClient` in `core/`, which returns the `OperationResult` fields described below.
+
+The backend code is organized by module rather than by layer. Each feature lives in its own package and contains its own controller and service, so contributors working on different modules rarely touch the same files. Code shared by all modules belongs in `common/`.
 
 ## API conventions
 

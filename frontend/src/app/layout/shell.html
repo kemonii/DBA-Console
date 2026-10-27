@@ -1,0 +1,16 @@
+<header class="header">
+  <span class="brand">DBA-Console</span>
+  <app-connection-status />
+</header>
+
+<nav class="nav" aria-label="Modules">
+  <a routerLink="/backup" routerLinkActive="active">Backup</a>
+  <a routerLink="/tuning" routerLinkActive="active">Tuning</a>
+  <a routerLink="/security" routerLinkActive="active">Security</a>
+  <a routerLink="/files" routerLinkActive="active">Files</a>
+  <a routerLink="/example" routerLinkActive="active">Example</a>
+</nav>
+
+<main class="content">
+  <router-outlet />
+</main>
