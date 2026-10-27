@@ -45,7 +45,7 @@ function toApiError(error: unknown): Observable<never> {
     );
   }
   if (isOperationResult(error.error)) {
-    return throwError(() => new ApiError(error.error.message, error.status));
+    return throwError(() => new ApiError(error.error.message, error.status, error.error.data));
   }
   return throwError(() => new ApiError(`Request failed with status ${error.status}`, error.status));
 }
