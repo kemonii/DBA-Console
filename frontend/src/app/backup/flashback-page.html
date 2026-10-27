@@ -1,0 +1,97 @@
+<section class="restore-table">
+  <h2>Flashback table</h2>
+  <p class="hint">Brings back a dropped table from the recycle bin.</p>
+
+  <form (submit)="restoreTable($event)" novalidate>
+    <div class="field">
+      <label for="table-schema">Schema</label>
+      <input id="table-schema" type="text" autocomplete="off" [formField]="tableForm.schema" />
+      @if (tableForm.schema().touched() && tableForm.schema().errors().length) {
+        <p class="error" role="alert">{{ tableForm.schema().errors()[0].message }}</p>
+      }
+    </div>
+    <div class="field">
+      <label for="table-table">Table</label>
+      <input id="table-table" type="text" autocomplete="off" [formField]="tableForm.table" />
+      @if (tableForm.table().touched() && tableForm.table().errors().length) {
+        <p class="error" role="alert">{{ tableForm.table().errors()[0].message }}</p>
+      }
+    </div>
+    <div><button type="submit" [disabled]="busy()">Restore table</button></div>
+  </form>
+
+  @if (tableOutcome(); as result) {
+    <p [class]="result.ok ? 'success' : 'error'" aria-live="polite">{{ result.message }}</p>
+  }
+</section>
+
+<section class="rows">
+  <h2>Flashback query</h2>
+  <p class="hint">Shows the rows a table had at an earlier moment, and can insert the ones that are missing now.</p>
+
+  <form (submit)="preview($event)" novalidate>
+    <div class="field">
+      <label for="rows-schema">Schema</label>
+      <input id="rows-schema" type="text" autocomplete="off" [formField]="rowsForm.schema" />
+      @if (rowsForm.schema().touched() && rowsForm.schema().errors().length) {
+        <p class="error" role="alert">{{ rowsForm.schema().errors()[0].message }}</p>
+      }
+    </div>
+    <div class="field">
+      <label for="rows-table">Table</label>
+      <input id="rows-table" type="text" autocomplete="off" [formField]="rowsForm.table" />
+      @if (rowsForm.table().touched() && rowsForm.table().errors().length) {
+        <p class="error" role="alert">{{ rowsForm.table().errors()[0].message }}</p>
+      }
+    </div>
+    <div class="field">
+      <label for="rows-timestamp">As of</label>
+      <input id="rows-timestamp" type="datetime-local" [formField]="rowsForm.timestamp" />
+      @if (rowsForm.timestamp().touched() && rowsForm.timestamp().errors().length) {
+        <p class="error" role="alert">{{ rowsForm.timestamp().errors()[0].message }}</p>
+      }
+    </div>
+    <div class="actions">
+      <button type="button" class="preview" [disabled]="busy()" (click)="preview()">Preview rows</button>
+      <button type="button" class="restore" [disabled]="busy()" (click)="restoreRows()">
+        Restore missing rows
+      </button>
+    </div>
+  </form>
+
+  <div aria-live="polite">
+    @if (rowsOutcome(); as result) {
+      <p [class]="result.ok ? 'success' : 'error'">{{ result.message }}</p>
+    }
+
+    @if (rows(); as found) {
+      <div class="rows-result">
+        @if (found.length === 0) {
+          <p>No rows at that moment.</p>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                @for (column of columns(); track column) {
+                  <th>{{ column }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of found; track $index) {
+                <tr>
+                  @for (column of columns(); track column) {
+                    <td>{{ row[column] }}</td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+          @if (found.length === 100) {
+            <p class="hint">Showing the first 100 rows.</p>
+          }
+        }
+      </div>
+    }
+  </div>
+</section>

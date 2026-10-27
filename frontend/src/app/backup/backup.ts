@@ -1,14 +1,41 @@
 import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 /**
- * Backup & Recovery page. Owned by the backup module: build this screen here.
- * To copy the pattern (form, API call, result), see `example/example.ts`.
+ * Backup & Recovery module page: a title, a menu with the module's screens (backup, recovery and flashback) and the
+ * routed screen. The routes are in `backup.routes.ts`.
  */
 @Component({
   selector: 'app-backup',
+  imports: [RouterLink, RouterLinkActive, RouterOutlet],
   template: `
     <h1>Backup &amp; Recovery</h1>
-    <p>This module is not implemented yet.</p>
+    <nav class="tabs" aria-label="Backup and recovery screens">
+      <a routerLink="." routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Backup</a>
+      <a routerLink="recovery" routerLinkActive="active">Recovery</a>
+      <a routerLink="flashback" routerLinkActive="active">Flashback</a>
+    </nav>
+    <router-outlet />
+  `,
+  styles: `
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #d1d5db;
+    }
+
+    .tabs a {
+      padding: 0.5rem 0.25rem;
+      color: #1f2937;
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tabs a.active {
+      font-weight: 600;
+      border-bottom-color: #1f2937;
+    }
   `,
 })
 export class Backup {}
