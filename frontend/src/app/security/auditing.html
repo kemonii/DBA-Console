@@ -1,0 +1,309 @@
+<section aria-live="polite">
+  @if (successMessage()) {
+    <p class="success" role="status">{{ successMessage() }}</p>
+  }
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+</section>
+
+<h2>Audit trail parameter</h2>
+@if (loadError()) {
+  <p class="error" role="alert">{{ loadError() }}</p>
+} @else if (parameter(); as current) {
+  @if (current.enabled) {
+    <p class="parameter success">
+      <code>audit_trail = {{ current.value }}</code
+      >: audit records are written to the database (SYS.AUD$).
+    </p>
+  } @else {
+    <p class="parameter error">
+      <code>audit_trail = {{ current.value }}</code
+      >: audit records are not written to the database, so the trail below stays empty.
+    </p>
+    <p class="hint">
+      To enable it, run <code>ALTER SYSTEM SET audit_trail = DB SCOPE = SPFILE;</code> as SYSDBA and
+      restart the database.
+    </p>
+  }
+} @else {
+  <p>Loading...</p>
+}
+
+<h2>Session auditing</h2>
+<p class="hint">Records every login attempt (AUDIT SESSION).</p>
+@if (options(); as current) {
+  @if (current.statementOptions.length === 0) {
+    <p class="statement-options">No statement auditing is enabled.</p>
+  } @else {
+    <table class="statement-options">
+      <caption class="visually-hidden">
+        Statement audit options
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Option</th>
+          <th scope="col">User</th>
+          <th scope="col">Successful</th>
+          <th scope="col">Not successful</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (option of current.statementOptions; track option.option + option.userName) {
+          <tr>
+            <td>{{ option.option }}</td>
+            <td>{{ option.userName ?? 'Every user' }}</td>
+            <td>{{ option.success }}</td>
+            <td>{{ option.failure }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+}
+<div class="row">
+  <div class="field">
+    <label for="session-whenever">Attempts</label>
+    <select id="session-whenever" [value]="sessionWhenever()" (change)="setSessionWhenever($event)">
+      <option value="ALWAYS">Successful and failed</option>
+      <option value="SUCCESSFUL">Successful only (WHENEVER SUCCESSFUL)</option>
+      <option value="NOT_SUCCESSFUL">Failed only (WHENEVER NOT SUCCESSFUL)</option>
+    </select>
+  </div>
+</div>
+<div class="actions">
+  <button id="session-enable" type="button" [disabled]="busy()" (click)="auditSessions(true)">
+    Enable
+  </button>
+  <button id="session-disable" type="button" [disabled]="busy()" (click)="auditSessions(false)">
+    Disable
+  </button>
+</div>
+
+<h2>Table auditing</h2>
+@if (options(); as current) {
+  @if (current.objectOptions.length === 0) {
+    <p class="object-options">No table is audited.</p>
+  } @else {
+    <table class="object-options">
+      <caption class="visually-hidden">
+        Audited tables
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Table</th>
+          <th scope="col">INSERT</th>
+          <th scope="col">UPDATE</th>
+          <th scope="col">DELETE</th>
+          <th scope="col">SELECT</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (option of current.objectOptions; track option.owner + '.' + option.objectName) {
+          <tr>
+            <td>{{ option.owner }}.{{ option.objectName }}</td>
+            <td>{{ option.insert }}</td>
+            <td>{{ option.update }}</td>
+            <td>{{ option.delete }}</td>
+            <td>{{ option.select }}</td>
+            <td>
+              <button
+                type="button"
+                class="small danger"
+                [attr.data-stop]="option.owner + '.' + option.objectName"
+                [disabled]="busy()"
+                (click)="stopAuditingTable(option)"
+              >
+                Stop
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <p class="hint">
+      A/A: audited by access when it succeeds and when it fails; S: by session; -: not audited.
+    </p>
+  }
+}
+<form (submit)="onAuditTable($event)" novalidate>
+  <div class="row">
+    <div class="field">
+      <label for="table-owner">Owner (schema)</label>
+      <input id="table-owner" type="text" [formField]="tableForm.owner" />
+      @if (tableForm.owner().touched() && tableForm.owner().errors().length) {
+        <p class="error" role="alert">{{ tableForm.owner().errors()[0].message }}</p>
+      }
+    </div>
+    <div class="field">
+      <label for="table-name">Table</label>
+      <input id="table-name" type="text" [formField]="tableForm.table" />
+      @if (tableForm.table().touched() && tableForm.table().errors().length) {
+        <p class="error" role="alert">{{ tableForm.table().errors()[0].message }}</p>
+      }
+    </div>
+  </div>
+  <fieldset>
+    <legend>Actions</legend>
+    @for (action of tableActions; track action) {
+      <label class="inline">
+        <input
+          type="checkbox"
+          [attr.data-action-option]="action"
+          [checked]="isActionSelected(action)"
+          (change)="toggleAction(action, $event)"
+        />
+        {{ action }}
+      </label>
+    }
+  </fieldset>
+  <label class="inline" for="table-by-access">
+    <input id="table-by-access" type="checkbox" [formField]="tableForm.byAccess" />
+    BY ACCESS (one record per statement; otherwise one per session)
+  </label>
+  <div>
+    <button id="table-submit" type="submit" [disabled]="busy()">Audit table</button>
+  </div>
+</form>
+
+<h2>Audit trail</h2>
+<form (submit)="onReadTrail($event)" novalidate>
+  <div class="row">
+    <div class="field">
+      <label for="trail-view">Show</label>
+      <select id="trail-view" [formField]="trailForm.view">
+        <option value="sessions">Login attempts (DBA_AUDIT_SESSION)</option>
+        <option value="objects">Actions on tables (DBA_AUDIT_OBJECT)</option>
+        <option value="all">Every audited action (DBA_AUDIT_TRAIL)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="trail-user">User</label>
+      <input
+        id="trail-user"
+        type="text"
+        placeholder="Every user"
+        [formField]="trailForm.username"
+      />
+    </div>
+    <div class="field">
+      <label for="trail-limit">Rows</label>
+      <input
+        id="trail-limit"
+        type="text"
+        inputmode="numeric"
+        size="5"
+        [formField]="trailForm.limit"
+      />
+      @if (trailForm.limit().touched() && trailForm.limit().errors().length) {
+        <p class="error" role="alert">{{ trailForm.limit().errors()[0].message }}</p>
+      }
+    </div>
+  </div>
+  <button id="trail-submit" type="submit">Read trail</button>
+</form>
+
+@if (trailError()) {
+  <p class="error" role="alert">{{ trailError() }}</p>
+}
+
+@switch (shownView()) {
+  @case ('sessions') {
+    @if (sessionRows().length === 0) {
+      <p class="trail-empty">No login attempts recorded.</p>
+    } @else {
+      <table class="trail">
+        <caption class="visually-hidden">
+          Login attempts
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Login</th>
+            <th scope="col">Logoff</th>
+            <th scope="col">Oracle user</th>
+            <th scope="col">OS user</th>
+            <th scope="col">Terminal</th>
+            <th scope="col">Outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of sessionRows(); track $index) {
+            <tr>
+              <td>{{ row.timestamp }}</td>
+              <td>{{ row.logoffTime }}</td>
+              <td>{{ row.username }}</td>
+              <td>{{ row.osUsername }}</td>
+              <td>{{ row.terminal }}</td>
+              <td>{{ row.outcome }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+  @case ('objects') {
+    @if (objectRows().length === 0) {
+      <p class="trail-empty">No actions on tables recorded.</p>
+    } @else {
+      <table class="trail">
+        <caption class="visually-hidden">
+          Actions on tables
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Time</th>
+            <th scope="col">Oracle user</th>
+            <th scope="col">Object</th>
+            <th scope="col">Action</th>
+            <th scope="col">Outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of objectRows(); track $index) {
+            <tr>
+              <td>{{ row.timestamp }}</td>
+              <td>{{ row.username }}</td>
+              <td>{{ row.owner }}.{{ row.objectName }}</td>
+              <td>{{ row.actionName }}</td>
+              <td>{{ row.outcome }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+  @case ('all') {
+    @if (trailRows().length === 0) {
+      <p class="trail-empty">No audited actions recorded.</p>
+    } @else {
+      <table class="trail">
+        <caption class="visually-hidden">
+          Audited actions
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Time</th>
+            <th scope="col">User</th>
+            <th scope="col">Action</th>
+            <th scope="col">Object</th>
+            <th scope="col">Privilege used</th>
+            <th scope="col">Return code</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of trailRows(); track $index) {
+            <tr>
+              <td>{{ row.timestamp }}</td>
+              <td>{{ row.username }}</td>
+              <td>{{ row.actionName }}</td>
+              <td>{{ row.owner ? row.owner + '.' + row.objectName : '' }}</td>
+              <td>{{ row.privilegeUsed }}</td>
+              <td>{{ row.returnCode }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+}

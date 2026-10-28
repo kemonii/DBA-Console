@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { Auditing } from './auditing';
 import { Privileges } from './privileges';
 import { Security } from './security';
 import { Tablespaces } from './tablespaces';
@@ -14,6 +15,7 @@ export const SECURITY_ROUTES: Routes = [
       { path: 'tablespaces', component: Tablespaces },
       { path: 'users', component: Users },
       { path: 'privileges', component: Privileges },
+      { path: 'auditing', component: Auditing },
     ],
   },
 ];
