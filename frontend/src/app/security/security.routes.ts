@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { Privileges } from './privileges';
 import { Security } from './security';
 import { Tablespaces } from './tablespaces';
 
@@ -10,6 +11,7 @@ export const SECURITY_ROUTES: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'tablespaces' },
       { path: 'tablespaces', component: Tablespaces },
+      { path: 'privileges', component: Privileges },
     ],
   },
 ];
