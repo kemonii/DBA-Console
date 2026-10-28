@@ -12,10 +12,10 @@ DBA-Console exposes common database administration tasks for Oracle Database 21c
 |---|---|---|
 | Backup & Recovery | Data Pump exports (`expdp`) by table, schema, or full database; recovery with `impdp` and Flashback. | Planned |
 | Query Tuning & Performance | Execution plans, optimizer statistics, and index maintenance; monitoring of the instance, sessions, and locks. | Planned |
-| Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Tablespaces, users, roles, privileges and auditing available |
+| Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Available |
 | File Management | Oracle directory objects and the dump and log files stored in them. | API available |
 
-The endpoints available in this version are the health check described under [Getting started](#getting-started), the [File Management endpoints](#file-management-endpoints), the [Tablespace endpoints](#tablespace-endpoints), the [User, role and privilege endpoints](#user-role-and-privilege-endpoints) and the [Auditing endpoints](#auditing-endpoints). The frontend has an empty page for each module and one example screen.
+The endpoints available in this version are the health check described under [Getting started](#getting-started), the [File Management endpoints](#file-management-endpoints), the [Tablespace endpoints](#tablespace-endpoints), the [User, role, privilege and profile endpoints](#user-role-privilege-and-profile-endpoints) and the [Auditing endpoints](#auditing-endpoints). The frontend has an empty page for each module and one example screen.
 
 ## Tech stack
 
@@ -246,7 +246,7 @@ All paths start with `/api/security/tablespaces` and use the statements from the
 
 New datafiles are always created in `DATAFILE_DIR`: the request gives only a plain file name ending in `.dbf`, and names with path separators are rejected with HTTP 400. Sizes are whole megabytes between 1 and 32767. Free space is measured inside the allocated size, so autoextensible datafiles can still grow; temporary tablespaces are not listed.
 
-## User, role and privilege endpoints
+## User, role, privilege and profile endpoints
 
 All paths start with `/api/security` and use the statements from the course ("Seguridad"). Names are validated as Oracle identifiers. Users and roles maintained by Oracle (`ORACLE_MAINTAINED = 'Y'`, such as `SYS`, `SYSTEM` or `DBA`) are never locked, dropped, or stripped of privileges.
 
@@ -268,8 +268,13 @@ All paths start with `/api/security` and use the statements from the course ("Se
 | `DELETE` | `/grants/role?role=...&grantee=...` | `REVOKE <role> FROM <grantee>` |
 | `POST` | `/grants/object` | `GRANT <privileges> ON <owner>.<object> TO <grantee> [WITH GRANT OPTION]`. Body: `{"privileges": ["SELECT", "INSERT"], "owner": "HR", "object": "EMPLOYEES", "grantee": "PRUEBA"}` |
 | `DELETE` | `/grants/object?privileges=SELECT,INSERT&owner=...&object=...&grantee=...` | `REVOKE <privileges> ON <owner>.<object> FROM <grantee>` |
+| `GET` | `/profiles` | Profiles and their kernel and password limits (`DBA_PROFILES`) |
+| `POST` | `/profiles` | `CREATE PROFILE ... LIMIT ...`. Body: `{"name": "APP_USER", "limits": {"SESSIONS_PER_USER": "2", "IDLE_TIME": "30", "FAILED_LOGIN_ATTEMPTS": "3"}}` |
+| `PUT` | `/profiles/{name}` | `ALTER PROFILE ... LIMIT ...`, for example `{"limits": {"IDLE_TIME": "20"}}` on `DEFAULT` |
+| `DELETE` | `/profiles/{name}` | `DROP PROFILE ... CASCADE` (its users get `DEFAULT`); `DEFAULT` itself is refused |
+| `PUT` | `/users/{name}/profile` | `ALTER USER ... PROFILE ...`. Body: `{"profile": "APP_USER"}` |
 
-The grantee can be a user, a role or `PUBLIC`. Passwords cannot be bind parameters, so they are rejected when they contain double quotes or control characters, and written in double quotes. System privilege names are checked against `SYSTEM_PRIVILEGE_MAP`, and object privileges against the list from the course (`SELECT`, `INSERT`, `UPDATE`, `DELETE`, `ALTER`, `INDEX`, `REFERENCES`, `EXECUTE`, `DEBUG`, `FLASHBACK`, `READ`, `WRITE`, `ALL`).
+Profile limits are `SESSIONS_PER_USER`, `CPU_PER_SESSION`, `CPU_PER_CALL`, `CONNECT_TIME`, `IDLE_TIME`, `LOGICAL_READS_PER_SESSION`, `LOGICAL_READS_PER_CALL`, `FAILED_LOGIN_ATTEMPTS`, `PASSWORD_LIFE_TIME`, `PASSWORD_REUSE_TIME`, `PASSWORD_REUSE_MAX`, `PASSWORD_LOCK_TIME` and `PASSWORD_GRACE_TIME`, each a whole number, `UNLIMITED` or `DEFAULT`. The grantee can be a user, a role or `PUBLIC`. Passwords cannot be bind parameters, so they are rejected when they contain double quotes or control characters, and written in double quotes. System privilege names are checked against `SYSTEM_PRIVILEGE_MAP`, and object privileges against the list from the course (`SELECT`, `INSERT`, `UPDATE`, `DELETE`, `ALTER`, `INDEX`, `REFERENCES`, `EXECUTE`, `DEBUG`, `FLASHBACK`, `READ`, `WRITE`, `ALL`).
 
 ## Auditing endpoints
 
