@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,8 @@ public class BackupLogService {
 
     /**
      * @param directory Oracle directory object name
-     * @param fileName  log file name such as {@code emp.log}; no path, only the identifier-style name plus {@code .log}
+     * @param fileName  log file name such as {@code emp.log} or {@code NW.LOG}; no path, only the identifier-style name
+     *                  plus {@code .log} in any case
      * @return up to the last {@value #MAX_LINES} lines of the file
      * @throws IllegalArgumentException if a name is invalid, the directory does not exist or the file is not there
      */
@@ -55,8 +57,9 @@ public class BackupLogService {
         return tail(readLines(file));
     }
 
+    /** The extension is compared in any case: logs created outside the application may end in {@code .LOG}. */
     private static String requireLogFileName(String fileName) {
-        if (fileName == null || !fileName.endsWith(LOG_EXTENSION)) {
+        if (fileName == null || !fileName.toLowerCase(Locale.ROOT).endsWith(LOG_EXTENSION)) {
             throw new IllegalArgumentException("Only " + LOG_EXTENSION + " files can be read");
         }
         OracleIdentifiers.requireValid(fileName.substring(0, fileName.length() - LOG_EXTENSION.length()));
