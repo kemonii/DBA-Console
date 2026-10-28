@@ -1,0 +1,302 @@
+<section aria-live="polite">
+  @if (successMessage()) {
+    <p class="success" role="status">{{ successMessage() }}</p>
+  }
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+</section>
+
+<h2>Privileges of a user or role</h2>
+<form (submit)="onShow($event)" novalidate>
+  <div class="row">
+    <div class="field">
+      <label for="grantee">User or role</label>
+      <input id="grantee" type="text" list="grantee-names" [formField]="granteeForm.grantee" />
+      <datalist id="grantee-names">
+        @for (name of granteeNames(); track name) {
+          <option [value]="name"></option>
+        }
+      </datalist>
+      @if (granteeForm.grantee().touched() && granteeForm.grantee().errors().length) {
+        <p class="error" role="alert">{{ granteeForm.grantee().errors()[0].message }}</p>
+      }
+    </div>
+  </div>
+  <button id="show-submit" type="submit">Show privileges</button>
+</form>
+
+@if (privilegesError()) {
+  <p class="error" role="alert">{{ privilegesError() }}</p>
+}
+
+@if (privileges(); as current) {
+  <h3>System privileges of {{ current.grantee }}</h3>
+  @if (current.systemPrivileges.length === 0) {
+    <p class="hint">None.</p>
+  } @else {
+    <table class="system-privileges">
+      <caption class="visually-hidden">
+        System privileges
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Privilege</th>
+          <th scope="col">Admin option</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of current.systemPrivileges; track item.privilege) {
+          <tr>
+            <td>{{ item.privilege }}</td>
+            <td>{{ item.adminOption ? 'Yes' : 'No' }}</td>
+            <td>
+              <button
+                type="button"
+                class="small danger"
+                [attr.data-revoke-system]="item.privilege"
+                [disabled]="busy()"
+                (click)="revokeSystemPrivilege(item.privilege)"
+              >
+                Revoke
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <h3>Roles of {{ current.grantee }}</h3>
+  @if (current.roles.length === 0) {
+    <p class="hint">None.</p>
+  } @else {
+    <table class="granted-roles">
+      <caption class="visually-hidden">
+        Granted roles
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Role</th>
+          <th scope="col">Admin option</th>
+          <th scope="col">Default role</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of current.roles; track item.role) {
+          <tr>
+            <td>{{ item.role }}</td>
+            <td>{{ item.adminOption ? 'Yes' : 'No' }}</td>
+            <td>{{ item.defaultRole ? 'Yes' : 'No' }}</td>
+            <td>
+              <button
+                type="button"
+                class="small danger"
+                [attr.data-revoke-role]="item.role"
+                [disabled]="busy()"
+                (click)="revokeRole(item.role)"
+              >
+                Revoke
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <h3>Object privileges of {{ current.grantee }}</h3>
+  @if (current.objectPrivileges.length === 0) {
+    <p class="hint">None.</p>
+  } @else {
+    <table class="object-privileges">
+      <caption class="visually-hidden">
+        Object privileges
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Object</th>
+          <th scope="col">Privilege</th>
+          <th scope="col">Grant option</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (
+          item of current.objectPrivileges;
+          track item.owner + item.objectName + item.privilege
+        ) {
+          <tr>
+            <td>{{ item.owner }}.{{ item.objectName }}</td>
+            <td>{{ item.privilege }}</td>
+            <td>{{ item.grantable ? 'Yes' : 'No' }}</td>
+            <td>
+              <button
+                type="button"
+                class="small danger"
+                [attr.data-revoke-object]="
+                  item.owner + '.' + item.objectName + ':' + item.privilege
+                "
+                [disabled]="busy()"
+                (click)="revokeObjectPrivilege(item.owner, item.objectName, item.privilege)"
+              >
+                Revoke
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <h3>Grant to {{ current.grantee }}</h3>
+  <form (submit)="onGrant($event)" novalidate>
+    <div class="field">
+      <label for="grant-kind">What to grant</label>
+      <select id="grant-kind" [formField]="grantForm.kind">
+        <option value="system">System privilege</option>
+        <option value="role">Role</option>
+        <option value="object">Privileges on an object</option>
+      </select>
+    </div>
+
+    @switch (grantModel().kind) {
+      @case ('system') {
+        <div class="field">
+          <label for="grant-privilege">System privilege</label>
+          <select id="grant-privilege" [formField]="grantForm.privilege">
+            <option value="">Select a privilege</option>
+            @for (name of systemPrivileges(); track name) {
+              <option [value]="name">{{ name }}</option>
+            }
+          </select>
+          @if (grantForm.privilege().touched() && grantForm.privilege().errors().length) {
+            <p class="error" role="alert">{{ grantForm.privilege().errors()[0].message }}</p>
+          }
+        </div>
+      }
+      @case ('role') {
+        <div class="field">
+          <label for="grant-role">Role</label>
+          <select id="grant-role" [formField]="grantForm.role">
+            <option value="">Select a role</option>
+            @for (role of roles(); track role.name) {
+              <option [value]="role.name">{{ role.name }}</option>
+            }
+          </select>
+          @if (grantForm.role().touched() && grantForm.role().errors().length) {
+            <p class="error" role="alert">{{ grantForm.role().errors()[0].message }}</p>
+          }
+        </div>
+      }
+      @case ('object') {
+        <div class="row">
+          <div class="field">
+            <label for="grant-owner">Owner (schema)</label>
+            <input id="grant-owner" type="text" [formField]="grantForm.owner" />
+            @if (grantForm.owner().touched() && grantForm.owner().errors().length) {
+              <p class="error" role="alert">{{ grantForm.owner().errors()[0].message }}</p>
+            }
+          </div>
+          <div class="field">
+            <label for="grant-object">Object</label>
+            <input id="grant-object" type="text" [formField]="grantForm.object" />
+            @if (grantForm.object().touched() && grantForm.object().errors().length) {
+              <p class="error" role="alert">{{ grantForm.object().errors()[0].message }}</p>
+            }
+          </div>
+        </div>
+        <fieldset>
+          <legend>Privileges</legend>
+          @for (privilege of objectPrivilegeNames; track privilege) {
+            <label class="inline">
+              <input
+                type="checkbox"
+                [attr.data-object-privilege]="privilege"
+                [checked]="isObjectPrivilegeSelected(privilege)"
+                (change)="toggleObjectPrivilege(privilege, $event)"
+              />
+              {{ privilege }}
+            </label>
+          }
+        </fieldset>
+      }
+    }
+
+    <label class="inline" for="grant-option">
+      <input id="grant-option" type="checkbox" [formField]="grantForm.withOption" />
+      {{ grantModel().kind === 'object' ? 'WITH GRANT OPTION' : 'WITH ADMIN OPTION' }}
+      (it can grant it to others)
+    </label>
+    <div>
+      <button id="grant-submit" type="submit" [disabled]="busy()">Grant</button>
+    </div>
+  </form>
+}
+
+<h2>Roles</h2>
+@if (rolesError()) {
+  <p class="error" role="alert">{{ rolesError() }}</p>
+}
+<div class="columns">
+  <div>
+    <h3>Created by administrators</h3>
+    @if (customRoles().length === 0) {
+      <p class="hint">None yet.</p>
+    } @else {
+      <table class="custom-roles">
+        <caption class="visually-hidden">
+          Roles created by administrators
+        </caption>
+        <tbody>
+          @for (role of customRoles(); track role.name) {
+            <tr>
+              <td>{{ role.name }}</td>
+              <td>
+                <button
+                  type="button"
+                  class="small danger"
+                  [attr.data-drop-role]="role.name"
+                  [disabled]="busy()"
+                  (click)="askRoleDrop(role.name)"
+                >
+                  Drop
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+    <form (submit)="onCreateRole($event)" novalidate>
+      <div class="field">
+        <label for="role-name">New role</label>
+        <input id="role-name" type="text" [formField]="roleForm.name" />
+        @if (roleForm.name().touched() && roleForm.name().errors().length) {
+          <p class="error" role="alert">{{ roleForm.name().errors()[0].message }}</p>
+        }
+      </div>
+      <button id="role-submit" type="submit" [disabled]="busy()">Create role</button>
+    </form>
+  </div>
+  <div>
+    <h3>Maintained by Oracle</h3>
+    <p class="hint">These can be granted but not dropped.</p>
+    <p class="oracle-roles">{{ oracleRoleNames() }}</p>
+  </div>
+</div>
+
+@if (pendingRoleDrop()) {
+  <div class="confirm" role="alertdialog" aria-label="Confirm drop">
+    <p>
+      Drop role <strong>{{ pendingRoleDrop() }}</strong
+      >? Every user and role that has it loses its privileges.
+    </p>
+    <button type="button" class="danger" data-action="confirm" (click)="confirmRoleDrop()">
+      Drop role
+    </button>
+    <button type="button" data-action="cancel" (click)="cancelRoleDrop()">Cancel</button>
+  </div>
+}

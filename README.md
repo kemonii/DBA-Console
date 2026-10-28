@@ -12,10 +12,10 @@ DBA-Console exposes common database administration tasks for Oracle Database 21c
 |---|---|---|
 | Backup & Recovery | Data Pump exports (`expdp`) by table, schema, or full database; recovery with `impdp` and Flashback. | Planned |
 | Query Tuning & Performance | Execution plans, optimizer statistics, and index maintenance; monitoring of the instance, sessions, and locks. | Planned |
-| Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Tablespaces available |
+| Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Tablespaces, users, roles and privileges available |
 | File Management | Oracle directory objects and the dump and log files stored in them. | API available |
 
-The endpoints available in this version are the health check described under [Getting started](#getting-started), the [File Management endpoints](#file-management-endpoints) and the [Tablespace endpoints](#tablespace-endpoints). The frontend has an empty page for each module and one example screen.
+The endpoints available in this version are the health check described under [Getting started](#getting-started), the [File Management endpoints](#file-management-endpoints), the [Tablespace endpoints](#tablespace-endpoints) and the [User, role and privilege endpoints](#user-role-and-privilege-endpoints). The frontend has an empty page for each module and one example screen.
 
 ## Tech stack
 
@@ -245,6 +245,31 @@ All paths start with `/api/security/tablespaces` and use the statements from the
 | `POST` | `/{name}/datafiles/{fileId}/resize` | `ALTER DATABASE DATAFILE ... RESIZE ...`. Body: `{"sizeMb": 5}` |
 
 New datafiles are always created in `DATAFILE_DIR`: the request gives only a plain file name ending in `.dbf`, and names with path separators are rejected with HTTP 400. Sizes are whole megabytes between 1 and 32767. Free space is measured inside the allocated size, so autoextensible datafiles can still grow; temporary tablespaces are not listed.
+
+## User, role and privilege endpoints
+
+All paths start with `/api/security` and use the statements from the course ("Seguridad"). Names are validated as Oracle identifiers. Users and roles maintained by Oracle (`ORACLE_MAINTAINED = 'Y'`, such as `SYS`, `SYSTEM` or `DBA`) are never locked, dropped, or stripped of privileges.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/users` | List the users created by administrators (`DBA_USERS`) |
+| `POST` | `/users` | `CREATE USER ... IDENTIFIED BY "..." [DEFAULT TABLESPACE ...] [TEMPORARY TABLESPACE ...] [QUOTA ... ON ...]`. Body: `{"username": "PRUEBA", "password": "...", "defaultTablespace": "USERS", "temporaryTablespace": "TEMP", "quotaMb": 50}`; `"unlimitedQuota": true` for `QUOTA UNLIMITED` |
+| `POST` | `/users/{name}/lock` | `ALTER USER ... ACCOUNT LOCK` |
+| `POST` | `/users/{name}/unlock` | `ALTER USER ... ACCOUNT UNLOCK` |
+| `DELETE` | `/users/{name}?confirm=true` | `DROP USER ...`; add `cascade=true` to also drop the user's objects |
+| `GET` | `/roles` | List roles (`DBA_ROLES`), the ones created by administrators first |
+| `POST` | `/roles` | `CREATE ROLE ...`. Body: `{"name": "VENTAS_ROL"}` |
+| `DELETE` | `/roles/{name}` | `DROP ROLE ...` |
+| `GET` | `/grants/system-privileges` | List the system privileges that can be granted (`SYSTEM_PRIVILEGE_MAP`) |
+| `GET` | `/grants/{grantee}` | System privileges, roles and object privileges of a user or role (`DBA_SYS_PRIVS`, `DBA_ROLE_PRIVS`, `DBA_TAB_PRIVS`) |
+| `POST` | `/grants/system` | `GRANT <privilege> TO <grantee> [WITH ADMIN OPTION]`. Body: `{"privilege": "CREATE SESSION", "grantee": "PRUEBA", "adminOption": false}` |
+| `DELETE` | `/grants/system?privilege=...&grantee=...` | `REVOKE <privilege> FROM <grantee>` |
+| `POST` | `/grants/role` | `GRANT <role> TO <grantee> [WITH ADMIN OPTION]`. Body: `{"role": "CONNECT", "grantee": "PRUEBA"}` |
+| `DELETE` | `/grants/role?role=...&grantee=...` | `REVOKE <role> FROM <grantee>` |
+| `POST` | `/grants/object` | `GRANT <privileges> ON <owner>.<object> TO <grantee> [WITH GRANT OPTION]`. Body: `{"privileges": ["SELECT", "INSERT"], "owner": "HR", "object": "EMPLOYEES", "grantee": "PRUEBA"}` |
+| `DELETE` | `/grants/object?privileges=SELECT,INSERT&owner=...&object=...&grantee=...` | `REVOKE <privileges> ON <owner>.<object> FROM <grantee>` |
+
+The grantee can be a user, a role or `PUBLIC`. Passwords cannot be bind parameters, so they are rejected when they contain double quotes or control characters, and written in double quotes. System privilege names are checked against `SYSTEM_PRIVILEGE_MAP`, and object privileges against the list from the course (`SELECT`, `INSERT`, `UPDATE`, `DELETE`, `ALTER`, `INDEX`, `REFERENCES`, `EXECUTE`, `DEBUG`, `FLASHBACK`, `READ`, `WRITE`, `ALL`).
 
 ## Contributing
 

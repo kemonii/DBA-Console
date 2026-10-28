@@ -1,0 +1,176 @@
+<h2>Users</h2>
+
+<section aria-live="polite">
+  @if (successMessage()) {
+    <p class="success" role="status">{{ successMessage() }}</p>
+  }
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+</section>
+
+@if (listError()) {
+  <p class="error" role="alert">{{ listError() }}</p>
+} @else if (!loaded()) {
+  <p>Loading...</p>
+} @else if (users().length === 0) {
+  <p>There are no users created by administrators yet. Create one below.</p>
+} @else {
+  <table>
+    <caption class="visually-hidden">
+      Users
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">User</th>
+        <th scope="col">Status</th>
+        <th scope="col">Default tablespace</th>
+        <th scope="col">Temporary tablespace</th>
+        <th scope="col">Profile</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (user of users(); track user.username) {
+        <tr>
+          <td>{{ user.username }}</td>
+          <td [class.status-locked]="isLocked(user)">{{ user.accountStatus }}</td>
+          <td>{{ user.defaultTablespace }}</td>
+          <td>{{ user.temporaryTablespace }}</td>
+          <td>{{ user.profile }}</td>
+          <td class="actions">
+            <a [routerLink]="['/security/privileges']" [queryParams]="{ grantee: user.username }">
+              Privileges
+            </a>
+            <button
+              type="button"
+              class="small"
+              [attr.data-lock]="user.username"
+              [disabled]="busy()"
+              (click)="toggleLock(user)"
+            >
+              {{ isLocked(user) ? 'Unlock' : 'Lock' }}
+            </button>
+            <button
+              type="button"
+              class="small danger"
+              [attr.data-drop]="user.username"
+              [disabled]="busy()"
+              (click)="askDrop(user.username)"
+            >
+              Drop
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <p class="hint">Users created by Oracle, such as SYS and SYSTEM, are not listed.</p>
+}
+
+@if (pendingDrop()) {
+  <div class="confirm" role="alertdialog" aria-label="Confirm drop">
+    <p>
+      Drop user <strong>{{ pendingDrop() }}</strong
+      >? This cannot be undone.
+    </p>
+    <label class="inline" for="drop-cascade">
+      <input
+        id="drop-cascade"
+        type="checkbox"
+        [checked]="dropCascade()"
+        (change)="setCascade($event)"
+      />
+      Also drop the tables and other objects it owns (CASCADE)
+    </label>
+    <button type="button" class="danger" data-action="confirm" (click)="confirmDrop()">
+      Drop user
+    </button>
+    <button type="button" data-action="cancel" (click)="cancelDrop()">Cancel</button>
+  </div>
+}
+
+<h2>Create a user</h2>
+<form (submit)="onCreate($event)" novalidate>
+  <div class="row">
+    <div class="field">
+      <label for="create-username">User name</label>
+      <input
+        id="create-username"
+        type="text"
+        autocomplete="off"
+        [formField]="createForm.username"
+      />
+      @if (createForm.username().touched() && createForm.username().errors().length) {
+        <p class="error" role="alert">{{ createForm.username().errors()[0].message }}</p>
+      }
+    </div>
+    <div class="field">
+      <label for="create-password">Password</label>
+      <input
+        id="create-password"
+        type="password"
+        autocomplete="new-password"
+        [formField]="createForm.password"
+      />
+      @if (createForm.password().touched() && createForm.password().errors().length) {
+        <p class="error" role="alert">{{ createForm.password().errors()[0].message }}</p>
+      }
+    </div>
+  </div>
+  <div class="row">
+    <div class="field">
+      <label for="create-default">Default tablespace</label>
+      <select id="create-default" [formField]="createForm.defaultTablespace">
+        <option value="">Database default</option>
+        @for (tablespace of tablespaces(); track tablespace) {
+          <option [value]="tablespace">{{ tablespace }}</option>
+        }
+      </select>
+      @if (
+        createForm.defaultTablespace().touched() && createForm.defaultTablespace().errors().length
+      ) {
+        <p class="error" role="alert">{{ createForm.defaultTablespace().errors()[0].message }}</p>
+      }
+    </div>
+    <div class="field">
+      <label for="create-temporary">Temporary tablespace</label>
+      <input
+        id="create-temporary"
+        type="text"
+        placeholder="Database default (TEMP)"
+        [formField]="createForm.temporaryTablespace"
+      />
+    </div>
+  </div>
+  <fieldset>
+    <legend>Quota on the default tablespace</legend>
+    <label class="inline" for="create-quota-mode">
+      <select id="create-quota-mode" [formField]="createForm.quotaMode">
+        <option value="none">No quota</option>
+        <option value="limited">Limited</option>
+        <option value="unlimited">Unlimited</option>
+      </select>
+    </label>
+    @if (createModel().quotaMode === 'limited') {
+      <label class="inline" for="create-quota">
+        <input
+          id="create-quota"
+          type="text"
+          inputmode="numeric"
+          size="8"
+          [formField]="createForm.quotaMb"
+        />
+        MB
+      </label>
+      @if (createForm.quotaMb().touched() && createForm.quotaMb().errors().length) {
+        <p class="error" role="alert">{{ createForm.quotaMb().errors()[0].message }}</p>
+      }
+    }
+  </fieldset>
+  <button id="create-submit" type="submit" [disabled]="busy()">Create user</button>
+  <p class="hint">
+    A new user cannot log in until it has the CREATE SESSION privilege; grant it in
+    <a routerLink="/security/privileges">Roles &amp; privileges</a>.
+  </p>
+</form>
