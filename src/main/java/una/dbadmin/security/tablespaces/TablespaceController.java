@@ -38,6 +38,10 @@ public class TablespaceController {
     public record AddDatafileRequest(String fileName, Integer sizeMb) {
     }
 
+    /** Request body to resize a datafile. */
+    public record ResizeRequest(Integer sizeMb) {
+    }
+
     @GetMapping
     @Operation(summary = "List tablespaces with their size, used and free space")
     public OperationResult list() {
@@ -63,5 +67,13 @@ public class TablespaceController {
     public OperationResult addDatafile(@PathVariable String name, @RequestBody AddDatafileRequest request) {
         tablespaceService.addDatafile(name, request.fileName(), request.sizeMb());
         return OperationResult.ok("Datafile added", null);
+    }
+
+    @PostMapping("/{name}/datafiles/{fileId}/resize")
+    @Operation(summary = "Resize a datafile of a tablespace")
+    public OperationResult resizeDatafile(
+            @PathVariable String name, @PathVariable int fileId, @RequestBody ResizeRequest request) {
+        tablespaceService.resizeDatafile(name, fileId, request.sizeMb());
+        return OperationResult.ok("Datafile resized", null);
     }
 }

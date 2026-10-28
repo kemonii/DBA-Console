@@ -125,4 +125,23 @@ class TablespaceServiceTest {
         verify(jdbc).execute("ALTER TABLESPACE VENTAS ADD DATAFILE '" + inDatafileDir("ventas02.dbf")
                 + "' SIZE 256M");
     }
+
+    @Test
+    void resizeUsesThePathFromTheDataDictionary() {
+        when(jdbc.queryForList(TablespaceService.DATAFILE_PATH_QUERY, String.class, 12, "VENTAS"))
+                .thenReturn(List.of("C:\\oradata\\ventas01.dbf"));
+
+        service.resizeDatafile("ventas", 12, 5);
+
+        verify(jdbc).execute("ALTER DATABASE DATAFILE 'C:\\oradata\\ventas01.dbf' RESIZE 5M");
+    }
+
+    @Test
+    void resizeRejectsAFileOfAnotherTablespace() {
+        when(jdbc.queryForList(TablespaceService.DATAFILE_PATH_QUERY, String.class, 1, "VENTAS"))
+                .thenReturn(List.of());
+
+        assertThrows(IllegalArgumentException.class, () -> service.resizeDatafile("ventas", 1, 5));
+        verify(jdbc, never()).execute(anyString());
+    }
 }

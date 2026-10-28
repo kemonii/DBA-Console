@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import una.dbadmin.common.OracleIdentifiers;
 
 /**
- * Lists and creates tablespaces and adds datafiles with the statements from the course ("Mantenimiento básico
+ * Creates tablespaces and adds or resizes datafiles with the statements from the course ("Mantenimiento básico
  * de bases de datos", class 4). New datafiles are always created under the configured {@code DATAFILE_DIR}, so a request only
  * names the file, never a path.
  */
@@ -36,6 +36,9 @@ public class TablespaceService {
 
     static final String DATAFILES_QUERY = "SELECT file_id, file_name, bytes, autoextensible, maxbytes "
             + "FROM dba_data_files WHERE tablespace_name = ? ORDER BY file_id";
+
+    static final String DATAFILE_PATH_QUERY =
+            "SELECT file_name FROM dba_data_files WHERE file_id = ? AND tablespace_name = ?";
 
     /** Largest smallfile datafile with the default 8 KB block size (4,194,303 blocks), rounded down. */
     static final int MAX_SIZE_MB = 32767;
@@ -108,6 +111,23 @@ public class TablespaceService {
         String path = datafilePath(fileName);
         int size = requireSize(sizeMb, "Size");
         jdbcTemplate.execute("ALTER TABLESPACE " + tablespace + " ADD DATAFILE '" + path + "' SIZE " + size + "M");
+    }
+
+    /**
+     * Runs {@code ALTER DATABASE DATAFILE ... RESIZE ...}. The file is chosen by number and must belong to the
+     * tablespace; its path is read from the data dictionary.
+     *
+     * @throws IllegalArgumentException if the file is not a datafile of the tablespace
+     */
+    public void resizeDatafile(String tablespaceName, int fileId, Integer sizeMb) {
+        String tablespace = OracleIdentifiers.requireValid(tablespaceName);
+        int size = requireSize(sizeMb, "New size");
+        List<String> paths = jdbcTemplate.queryForList(DATAFILE_PATH_QUERY, String.class, fileId, tablespace);
+        if (paths.isEmpty()) {
+            throw new IllegalArgumentException("Datafile " + fileId + " does not belong to tablespace " + tablespace);
+        }
+        String path = requireQuotable(paths.get(0));
+        jdbcTemplate.execute("ALTER DATABASE DATAFILE '" + path + "' RESIZE " + size + "M");
     }
 
     private String datafilePath(String fileName) {

@@ -241,6 +241,7 @@ All paths start with `/api/security/tablespaces` and use the statements from the
 | `POST` | `/` | `CREATE TABLESPACE ... DATAFILE ... SIZE ... AUTOEXTEND ON NEXT ... MAXSIZE ...`. Body: `{"name": "VENTAS", "fileName": "ventas01.dbf", "sizeMb": 2, "nextMb": 1, "maxSizeMb": 1024}`; omit `maxSizeMb` for `UNLIMITED` |
 | `GET` | `/{name}/datafiles` | List the datafiles of a tablespace (`DBA_DATA_FILES`) |
 | `POST` | `/{name}/datafiles` | `ALTER TABLESPACE ... ADD DATAFILE ... SIZE ...`. Body: `{"fileName": "ventas02.dbf", "sizeMb": 256}` |
+| `POST` | `/{name}/datafiles/{fileId}/resize` | `ALTER DATABASE DATAFILE ... RESIZE ...`. Body: `{"sizeMb": 5}` |
 
 New datafiles are always created in `DATAFILE_DIR`: the request gives only a plain file name ending in `.dbf`, and names with path separators are rejected with HTTP 400. Sizes are whole megabytes between 1 and 32767. Free space is measured inside the allocated size, so autoextensible datafiles can still grow; temporary tablespaces are not listed.
 

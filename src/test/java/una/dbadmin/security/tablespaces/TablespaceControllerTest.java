@@ -139,4 +139,18 @@ class TablespaceControllerTest {
         verify(jdbc).execute("ALTER TABLESPACE VENTAS ADD DATAFILE '"
                 + Path.of(DATAFILE_DIR).resolve("ventas02.dbf") + "' SIZE 256M");
     }
+
+    @Test
+    void resizesADatafile() throws Exception {
+        when(jdbc.queryForList(TablespaceService.DATAFILE_PATH_QUERY, String.class, 12, "VENTAS"))
+                .thenReturn(List.of("/u01/oradata/XEPDB1/ventas01.dbf"));
+
+        mvc.perform(post("/api/security/tablespaces/VENTAS/datafiles/12/resize")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"sizeMb\":5}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ok").value(true));
+
+        verify(jdbc).execute("ALTER DATABASE DATAFILE '/u01/oradata/XEPDB1/ventas01.dbf' RESIZE 5M");
+    }
 }
