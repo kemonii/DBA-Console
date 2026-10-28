@@ -12,10 +12,10 @@ DBA-Console exposes common database administration tasks for Oracle Database 21c
 |---|---|---|
 | Backup & Recovery | Data Pump exports (`expdp`) by table, schema, or full database; recovery with `impdp` and Flashback. | Planned |
 | Query Tuning & Performance | Execution plans, optimizer statistics, and index maintenance; monitoring of the instance, sessions, and locks. | Planned |
-| Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Tablespaces, users, roles and privileges available |
+| Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Tablespaces, users, roles, privileges and auditing available |
 | File Management | Oracle directory objects and the dump and log files stored in them. | API available |
 
-The endpoints available in this version are the health check described under [Getting started](#getting-started), the [File Management endpoints](#file-management-endpoints), the [Tablespace endpoints](#tablespace-endpoints) and the [User, role and privilege endpoints](#user-role-and-privilege-endpoints). The frontend has an empty page for each module and one example screen.
+The endpoints available in this version are the health check described under [Getting started](#getting-started), the [File Management endpoints](#file-management-endpoints), the [Tablespace endpoints](#tablespace-endpoints), the [User, role and privilege endpoints](#user-role-and-privilege-endpoints) and the [Auditing endpoints](#auditing-endpoints). The frontend has an empty page for each module and one example screen.
 
 ## Tech stack
 
@@ -270,6 +270,24 @@ All paths start with `/api/security` and use the statements from the course ("Se
 | `DELETE` | `/grants/object?privileges=SELECT,INSERT&owner=...&object=...&grantee=...` | `REVOKE <privileges> ON <owner>.<object> FROM <grantee>` |
 
 The grantee can be a user, a role or `PUBLIC`. Passwords cannot be bind parameters, so they are rejected when they contain double quotes or control characters, and written in double quotes. System privilege names are checked against `SYSTEM_PRIVILEGE_MAP`, and object privileges against the list from the course (`SELECT`, `INSERT`, `UPDATE`, `DELETE`, `ALTER`, `INDEX`, `REFERENCES`, `EXECUTE`, `DEBUG`, `FLASHBACK`, `READ`, `WRITE`, `ALL`).
+
+## Auditing endpoints
+
+All paths start with `/api/security/auditing` and use the statements and views from the course ("Auditoría Oracle"). This is traditional auditing: records are written to `SYS.AUD$` only while the `audit_trail` parameter is `DB` (or `DB, EXTENDED`). The application only reads the parameter, since changing it needs `ALTER SYSTEM SET audit_trail = DB SCOPE = SPFILE` and a database restart.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/parameter` | Value of `audit_trail` (`V$PARAMETER`) and whether it writes to the database trail |
+| `GET` | `/options` | Statement options (`DBA_STMT_AUDIT_OPTS`) and audited tables (`DBA_OBJ_AUDIT_OPTS`, without Oracle's own schemas) |
+| `POST` | `/session` | `AUDIT SESSION [WHENEVER [NOT] SUCCESSFUL]`. Body: `{"whenever": "ALWAYS"}`, `"SUCCESSFUL"` or `"NOT_SUCCESSFUL"` |
+| `DELETE` | `/session?whenever=ALWAYS` | `NOAUDIT SESSION [WHENEVER ...]` |
+| `POST` | `/tables` | `AUDIT <actions> ON <owner>.<table> BY ACCESS \| BY SESSION`. Body: `{"owner": "HR", "table": "JOBS", "actions": ["INSERT", "UPDATE", "DELETE"], "byAccess": true}` |
+| `DELETE` | `/tables?owner=...&table=...&actions=INSERT,UPDATE` | `NOAUDIT <actions> ON <owner>.<table>` |
+| `GET` | `/trail` | Newest rows of `DBA_AUDIT_TRAIL` |
+| `GET` | `/trail/sessions` | Newest login attempts from `DBA_AUDIT_SESSION`, with the outcome decoded as in class (`Connected`, `Failed`, ...) |
+| `GET` | `/trail/objects` | Newest audited actions on objects from `DBA_AUDIT_OBJECT` |
+
+The three `/trail` endpoints accept an optional `username` and `limit` (default 100, at most 1000), both sent as bind values. Table actions are `INSERT`, `UPDATE`, `DELETE` and `SELECT`.
 
 ## Contributing
 
