@@ -1,0 +1,95 @@
+<h2>Backup files</h2>
+
+<div class="field">
+  <label for="directory">Directory</label>
+  <select id="directory" (change)="onSelectDirectory($event)">
+    <option value="" [selected]="!directory()">Select a directory</option>
+    @for (item of directories(); track item.name) {
+      <option [value]="item.name" [selected]="item.name === directory()">{{ item.name }}</option>
+    }
+  </select>
+</div>
+
+<section aria-live="polite">
+  @if (successMessage()) {
+    <p class="success" role="status">{{ successMessage() }}</p>
+  }
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+</section>
+
+@if (!directory()) {
+  <p>Select a directory to see its files.</p>
+} @else if (listError()) {
+  <p class="error" role="alert">{{ listError() }}</p>
+} @else if (!filesLoaded()) {
+  <p>Loading...</p>
+} @else if (files().length === 0) {
+  <p>This directory has no .dmp or .log files.</p>
+} @else {
+  <table>
+    <caption class="visually-hidden">
+      Files in
+      {{ directory() }}
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Size</th>
+        <th scope="col">Last modified</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (file of files(); track file.name) {
+        <tr>
+          <td>{{ file.name }}</td>
+          <td>{{ formatSize(file.sizeBytes) }}</td>
+          <td>{{ file.lastModified | date: 'medium' }}</td>
+          <td class="actions">
+            @if (isLog(file.name)) {
+              <button type="button" [attr.data-view]="file.name" (click)="viewLog(file.name)">
+                View
+              </button>
+            }
+            <button
+              type="button"
+              class="danger"
+              [attr.data-delete]="file.name"
+              [disabled]="busy()"
+              (click)="askDelete(file.name)"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+@if (pendingDelete()) {
+  <div class="confirm" role="alertdialog" aria-label="Confirm delete">
+    <p>
+      Delete <strong>{{ pendingDelete() }}</strong> from the server? This cannot be undone.
+    </p>
+    <button type="button" class="danger" data-action="confirm" (click)="confirmDelete()">
+      Delete file
+    </button>
+    <button type="button" data-action="cancel" (click)="cancelDelete()">Cancel</button>
+  </div>
+}
+
+@if (log(); as content) {
+  <section class="log-panel" aria-label="Log content">
+    <div class="log-header">
+      <h3>{{ content.name }}</h3>
+      <button type="button" data-action="close" (click)="closeLog()">Close</button>
+    </div>
+    @if (content.truncated) {
+      <p class="warning">Only the beginning of the file is shown.</p>
+    }
+    <pre class="log">{{ content.content }}</pre>
+  </section>
+}
