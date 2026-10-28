@@ -1,16 +1,21 @@
 package una.dbadmin.security.tablespaces;
 
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import una.dbadmin.common.OracleIdentifiers;
 
 /**
- * Reads tablespace usage and datafiles with the queries from the course ("Mantenimiento básico de bases de
- * datos", class 4).
+ * Lists and creates tablespaces and adds datafiles with the statements from the course ("Mantenimiento básico
+ * de bases de datos", class 4). New datafiles are always created under the configured {@code DATAFILE_DIR}, so a request only
+ * names the file, never a path.
  */
 @Service
 public class TablespaceService {
@@ -32,12 +37,21 @@ public class TablespaceService {
     static final String DATAFILES_QUERY = "SELECT file_id, file_name, bytes, autoextensible, maxbytes "
             + "FROM dba_data_files WHERE tablespace_name = ? ORDER BY file_id";
 
+    /** Largest smallfile datafile with the default 8 KB block size (4,194,303 blocks), rounded down. */
+    static final int MAX_SIZE_MB = 32767;
+
+    /** A plain file name ending in .dbf: no directory separators, so it always lands in DATAFILE_DIR. */
+    private static final Pattern DATAFILE_NAME =
+            Pattern.compile("[A-Za-z0-9_][A-Za-z0-9_.-]{0,95}\\.dbf", Pattern.CASE_INSENSITIVE);
+
     private static final double BYTES_PER_MB = 1024.0 * 1024.0;
 
     private final JdbcTemplate jdbcTemplate;
+    private final String datafileDir;
 
-    public TablespaceService(JdbcTemplate jdbcTemplate) {
+    public TablespaceService(JdbcTemplate jdbcTemplate, @Value("${app.oracle.datafile-dir}") String datafileDir) {
         this.jdbcTemplate = jdbcTemplate;
+        this.datafileDir = datafileDir;
     }
 
     public List<TablespaceUsage> listUsage() {
@@ -62,6 +76,70 @@ public class TablespaceService {
                         "YES".equals(row.get("AUTOEXTENSIBLE")),
                         megabytes(row, "MAXBYTES")))
                 .toList();
+    }
+
+    /**
+     * Runs {@code CREATE TABLESPACE ... DATAFILE ... SIZE ... AUTOEXTEND ON NEXT ... MAXSIZE ...}.
+     *
+     * @param maxSizeMb {@code null} for {@code MAXSIZE UNLIMITED}
+     * @return the tablespace name as Oracle stores it (upper case)
+     */
+    public String create(String name, String fileName, Integer sizeMb, Integer nextMb, Integer maxSizeMb) {
+        String tablespace = OracleIdentifiers.requireValid(name);
+        String path = datafilePath(fileName);
+        int size = requireSize(sizeMb, "Initial size");
+        int next = requireSize(nextMb, "Autoextend increment");
+        String maxSize = "UNLIMITED";
+        if (maxSizeMb != null) {
+            int max = requireSize(maxSizeMb, "Maximum size");
+            if (max < size) {
+                throw new IllegalArgumentException("Maximum size must be at least the initial size");
+            }
+            maxSize = max + "M";
+        }
+        jdbcTemplate.execute("CREATE TABLESPACE " + tablespace + " DATAFILE '" + path + "' SIZE " + size
+                + "M AUTOEXTEND ON NEXT " + next + "M MAXSIZE " + maxSize);
+        return tablespace;
+    }
+
+    /** Runs {@code ALTER TABLESPACE ... ADD DATAFILE ... SIZE ...}. */
+    public void addDatafile(String tablespaceName, String fileName, Integer sizeMb) {
+        String tablespace = OracleIdentifiers.requireValid(tablespaceName);
+        String path = datafilePath(fileName);
+        int size = requireSize(sizeMb, "Size");
+        jdbcTemplate.execute("ALTER TABLESPACE " + tablespace + " ADD DATAFILE '" + path + "' SIZE " + size + "M");
+    }
+
+    private String datafilePath(String fileName) {
+        if (fileName == null || !DATAFILE_NAME.matcher(fileName).matches()) {
+            throw new IllegalArgumentException(
+                    "Datafile name must be a plain file name ending in .dbf, for example ventas01.dbf");
+        }
+        if (datafileDir == null || datafileDir.isBlank()) {
+            throw new IllegalStateException("DATAFILE_DIR is not configured");
+        }
+        try {
+            return requireQuotable(Path.of(datafileDir).resolve(fileName).toString());
+        } catch (InvalidPathException ex) {
+            throw new IllegalStateException("DATAFILE_DIR is not a valid path: " + datafileDir, ex);
+        }
+    }
+
+    private static String requireQuotable(String path) {
+        if (path.indexOf('\'') >= 0 || path.chars().anyMatch(Character::isISOControl)) {
+            throw new IllegalArgumentException("Datafile path contains invalid characters");
+        }
+        return path;
+    }
+
+    private static int requireSize(Integer megabytes, String label) {
+        if (megabytes == null) {
+            throw new IllegalArgumentException(label + " is required");
+        }
+        if (megabytes < 1 || megabytes > MAX_SIZE_MB) {
+            throw new IllegalArgumentException(label + " must be between 1 and " + MAX_SIZE_MB + " MB");
+        }
+        return megabytes;
     }
 
     private static double number(Map<String, Object> row, String column) {

@@ -1,17 +1,26 @@
 package una.dbadmin.security.tablespaces;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -21,13 +30,15 @@ import una.dbadmin.common.GlobalExceptionHandler;
 /** Exercises the HTTP contract with the real service and a mocked {@link JdbcTemplate}; no database is needed. */
 class TablespaceControllerTest {
 
+    private static final String DATAFILE_DIR = "/u01/oradata/XEPDB1";
+
     private JdbcTemplate jdbc;
     private MockMvc mvc;
 
     @BeforeEach
     void setUp() {
         jdbc = mock(JdbcTemplate.class);
-        TablespaceController controller = new TablespaceController(new TablespaceService(jdbc));
+        TablespaceController controller = new TablespaceController(new TablespaceService(jdbc, DATAFILE_DIR));
         mvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
@@ -52,6 +63,56 @@ class TablespaceControllerTest {
     }
 
     @Test
+    void createsATablespace() throws Exception {
+        mvc.perform(post("/api/security/tablespaces")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"ventas","fileName":"ventas01.dbf","sizeMb":2,"nextMb":1,"maxSizeMb":1024}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ok").value(true))
+                .andExpect(jsonPath("$.data").value("VENTAS"));
+
+        verify(jdbc).execute("CREATE TABLESPACE VENTAS DATAFILE '"
+                + Path.of(DATAFILE_DIR).resolve("ventas01.dbf") + "' SIZE 2M AUTOEXTEND ON NEXT 1M MAXSIZE 1024M");
+    }
+
+    @Test
+    void createRejectsAPathInTheFileName() throws Exception {
+        mvc.perform(post("/api/security/tablespaces")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"ventas","fileName":"../../system01.dbf","sizeMb":2,"nextMb":1}"""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.ok").value(false));
+
+        verify(jdbc, never()).execute(anyString());
+    }
+
+    @Test
+    void createRejectsAMissingSize() throws Exception {
+        mvc.perform(post("/api/security/tablespaces")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"ventas","fileName":"ventas01.dbf","nextMb":1}"""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Initial size is required"));
+    }
+
+    @Test
+    void createReportsTheOracleError() throws Exception {
+        doThrow(new DataIntegrityViolationException("x",
+                        new SQLException("ORA-01543: tablespace 'VENTAS' already exists")))
+                .when(jdbc).execute(anyString());
+
+        mvc.perform(post("/api/security/tablespaces")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"ventas","fileName":"ventas01.dbf","sizeMb":2,"nextMb":1}"""))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("ORA-01543: tablespace 'VENTAS' already exists"));
+    }
+
+    @Test
     void listsDatafiles() throws Exception {
         when(jdbc.queryForList(TablespaceService.DATAFILES_QUERY, "USERS")).thenReturn(List.of(Map.of(
                 "FILE_ID", new BigDecimal("12"),
@@ -65,5 +126,17 @@ class TablespaceControllerTest {
                 .andExpect(jsonPath("$.data[0].fileId").value(12))
                 .andExpect(jsonPath("$.data[0].sizeMb").value(5.0))
                 .andExpect(jsonPath("$.data[0].autoextensible").value(false));
+    }
+
+    @Test
+    void addsADatafile() throws Exception {
+        mvc.perform(post("/api/security/tablespaces/VENTAS/datafiles")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fileName\":\"ventas02.dbf\",\"sizeMb\":256}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ok").value(true));
+
+        verify(jdbc).execute("ALTER TABLESPACE VENTAS ADD DATAFILE '"
+                + Path.of(DATAFILE_DIR).resolve("ventas02.dbf") + "' SIZE 256M");
     }
 }
