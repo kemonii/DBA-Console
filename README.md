@@ -12,10 +12,10 @@ DBA-Console exposes common database administration tasks for Oracle Database 21c
 |---|---|---|
 | Backup & Recovery | Data Pump exports (`expdp`) by table, schema, or full database; recovery with `impdp` and Flashback. | Planned |
 | Query Tuning & Performance | Execution plans, optimizer statistics, and index maintenance; monitoring of the instance, sessions, and locks. | Planned |
-| Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Planned |
+| Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Tablespaces available |
 | File Management | Oracle directory objects and the dump and log files stored in them. | API available |
 
-The endpoints available in this version are the health check described under [Getting started](#getting-started) and the [File Management endpoints](#file-management-endpoints). The frontend has an empty page for each module and one example screen.
+The endpoints available in this version are the health check described under [Getting started](#getting-started), the [File Management endpoints](#file-management-endpoints) and the [Tablespace endpoints](#tablespace-endpoints). The frontend has an empty page for each module and one example screen.
 
 ## Tech stack
 
@@ -230,6 +230,21 @@ All paths start with `/api/files`. Directory and user names are validated as Ora
 | `DELETE` | `/directories/{name}/files/{file}?confirm=true` | Delete a backup file; without `confirm=true` the request is rejected |
 
 File names must be plain names ending in `.dmp` or `.log`, made of letters, digits, `_`, `.` and `-`. Names with path separators, `..`, or other characters are rejected with HTTP 400, and the resolved path (including symbolic links) must stay inside the directory's path. Files are read from the directory's path on the host where the application runs.
+
+## Tablespace endpoints
+
+All paths start with `/api/security/tablespaces` and use the statements from the course (class 4). Tablespace names are validated as Oracle identifiers. The full request and response schemas are in Swagger UI.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | List tablespaces with total, used and free space in MB (usage script from class 4: `DBA_DATA_FILES` and `DBA_FREE_SPACE`) |
+| `POST` | `/` | `CREATE TABLESPACE ... DATAFILE ... SIZE ... AUTOEXTEND ON NEXT ... MAXSIZE ...`. Body: `{"name": "VENTAS", "fileName": "ventas01.dbf", "sizeMb": 2, "nextMb": 1, "maxSizeMb": 1024}`; omit `maxSizeMb` for `UNLIMITED` |
+| `DELETE` | `/{name}?confirm=true` | `DROP TABLESPACE ... INCLUDING CONTENTS AND DATAFILES`; without `confirm=true` the request is rejected, and `SYSTEM` and `SYSAUX` are always refused |
+| `GET` | `/{name}/datafiles` | List the datafiles of a tablespace (`DBA_DATA_FILES`) |
+| `POST` | `/{name}/datafiles` | `ALTER TABLESPACE ... ADD DATAFILE ... SIZE ...`. Body: `{"fileName": "ventas02.dbf", "sizeMb": 256}` |
+| `POST` | `/{name}/datafiles/{fileId}/resize` | `ALTER DATABASE DATAFILE ... RESIZE ...`. Body: `{"sizeMb": 5}` |
+
+New datafiles are always created in `DATAFILE_DIR`: the request gives only a plain file name ending in `.dbf`, and names with path separators are rejected with HTTP 400. Sizes are whole megabytes between 1 and 32767. Free space is measured inside the allocated size, so autoextensible datafiles can still grow; temporary tablespaces are not listed.
 
 ## Contributing
 
