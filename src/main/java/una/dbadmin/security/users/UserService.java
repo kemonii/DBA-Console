@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import una.dbadmin.common.OracleIdentifiers;
 
 /**
- * Creates, locks, unlocks and drops database users with the statements from the course ("Seguridad"). Users created by Oracle
+ * Creates, locks, unlocks and drops database users, and assigns their profile, with the statements from the course ("Seguridad"). Users created by Oracle
  * itself ({@code ORACLE_MAINTAINED = 'Y'}, such as SYS and SYSTEM) are neither listed nor changed.
  */
 @Service
@@ -78,6 +78,13 @@ public class UserService {
     public void setLocked(String username, boolean locked) {
         String user = requireManageable(username);
         jdbcTemplate.execute("ALTER USER " + user + " ACCOUNT " + (locked ? "LOCK" : "UNLOCK"));
+    }
+
+    /** Runs {@code ALTER USER ... PROFILE ...}; a user has exactly one profile. */
+    public void setProfile(String username, String profileName) {
+        String user = requireManageable(username);
+        String profile = OracleIdentifiers.requireValid(profileName);
+        jdbcTemplate.execute("ALTER USER " + user + " PROFILE " + profile);
     }
 
     /**

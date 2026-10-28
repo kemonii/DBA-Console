@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,6 +38,10 @@ public class UserController {
                                     String temporaryTablespace, Integer quotaMb, boolean unlimitedQuota) {
     }
 
+    /** Request body to assign a profile. */
+    public record ProfileRequest(String profile) {
+    }
+
     @GetMapping
     @Operation(summary = "List the users created by administrators (not maintained by Oracle)")
     public OperationResult list() {
@@ -63,6 +68,13 @@ public class UserController {
     public OperationResult unlock(@PathVariable String name) {
         userService.setLocked(name, false);
         return OperationResult.ok("User unlocked", null);
+    }
+
+    @PutMapping("/{name}/profile")
+    @Operation(summary = "Assign a profile to a user (ALTER USER ... PROFILE)")
+    public OperationResult setProfile(@PathVariable String name, @RequestBody ProfileRequest request) {
+        userService.setProfile(name, request.profile());
+        return OperationResult.ok("Profile assigned", null);
     }
 
     @DeleteMapping("/{name}")
