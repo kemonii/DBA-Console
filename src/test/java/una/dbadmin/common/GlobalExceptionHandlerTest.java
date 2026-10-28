@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 
@@ -67,6 +69,38 @@ class GlobalExceptionHandlerTest {
         OperationResult body = assertBody(response);
         assertFalse(body.ok());
         assertEquals("Database error: Connection refused", body.message());
+    }
+
+    @Test
+    void uncheckedIoKeepsAMessageWrittenForTheUser() {
+        ResponseEntity<OperationResult> response = handler.handleUncheckedIo(new UncheckedIOException(
+                "Could not run expdp; check that it is installed and on the PATH",
+                new IOException("Cannot run program \"expdp\": CreateProcess error=2")));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        OperationResult body = assertBody(response);
+        assertFalse(body.ok());
+        assertEquals("Could not run expdp; check that it is installed and on the PATH", body.message());
+    }
+
+    @Test
+    void uncheckedIoThatOnlyWrapsItsCauseReportsTheCause() {
+        ResponseEntity<OperationResult> response =
+                handler.handleUncheckedIo(new UncheckedIOException(new IOException("disk error")));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("File system error: disk error", assertBody(response).message());
+    }
+
+    @Test
+    void illegalStateMapsToInternalServerError() {
+        ResponseEntity<OperationResult> response = handler.handleIllegalState(
+                new IllegalStateException("expdp did not finish within 30 minutes and was stopped"));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        OperationResult body = assertBody(response);
+        assertFalse(body.ok());
+        assertEquals("expdp did not finish within 30 minutes and was stopped", body.message());
     }
 
     private static OperationResult assertBody(ResponseEntity<OperationResult> response) {

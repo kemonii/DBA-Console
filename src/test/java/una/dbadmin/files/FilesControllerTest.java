@@ -44,7 +44,7 @@ class FilesControllerTest {
         jdbc = mock(JdbcTemplate.class);
         FilesController controller = new FilesController(new FilesService(jdbc));
         mvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(new GlobalExceptionHandler(), new FilesExceptionHandler())
+                .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
 
@@ -226,7 +226,7 @@ class FilesControllerTest {
         FilesService failing = mock(FilesService.class);
         when(failing.listFiles("BACKUPS")).thenThrow(new java.io.UncheckedIOException(new IOException("disk error")));
         MockMvc failingMvc = MockMvcBuilders.standaloneSetup(new FilesController(failing))
-                .setControllerAdvice(new GlobalExceptionHandler(), new FilesExceptionHandler())
+                .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
 
         failingMvc.perform(get("/api/files/directories/BACKUPS/files"))
