@@ -49,6 +49,6 @@ describe('Security routes', () => {
     const links = Array.from(
       (harness.fixture.nativeElement as HTMLElement).querySelectorAll('nav a'),
     ).map((a) => a.textContent?.trim());
-    expect(links).toEqual(['Tablespaces', 'Users', 'Roles & privileges', 'Auditing']);
+    expect(links).toEqual(['Tablespaces', 'Users', 'Roles & privileges', 'Profiles', 'Auditing']);
   });
 });

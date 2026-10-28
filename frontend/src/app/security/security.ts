@@ -3,7 +3,8 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 /**
  * Security shell: a heading, a sub-navigation and an outlet for the module's screens
- * (`tablespaces.ts`, `users.ts`, `privileges.ts` and `auditing.ts`). Routes are defined in `security.routes.ts`.
+ * (`tablespaces.ts`, `users.ts`, `privileges.ts`, `profiles.ts`
+ * and `auditing.ts`). Routes are defined in `security.routes.ts`.
  */
 @Component({
   selector: 'app-security',
@@ -14,6 +15,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
       <a routerLink="/security/tablespaces" routerLinkActive="active">Tablespaces</a>
       <a routerLink="/security/users" routerLinkActive="active">Users</a>
       <a routerLink="/security/privileges" routerLinkActive="active">Roles &amp; privileges</a>
+      <a routerLink="/security/profiles" routerLinkActive="active">Profiles</a>
       <a routerLink="/security/auditing" routerLinkActive="active">Auditing</a>
     </nav>
     <router-outlet />

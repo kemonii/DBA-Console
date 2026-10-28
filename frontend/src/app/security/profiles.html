@@ -1,0 +1,151 @@
+<h2>Profiles</h2>
+
+<section aria-live="polite">
+  @if (successMessage()) {
+    <p class="success" role="status">{{ successMessage() }}</p>
+  }
+  @if (errorMessage()) {
+    <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
+</section>
+
+@if (listError()) {
+  <p class="error" role="alert">{{ listError() }}</p>
+} @else if (!loaded()) {
+  <p>Loading...</p>
+} @else {
+  <table class="profiles">
+    <caption class="visually-hidden">
+      Limits of every profile
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Limit</th>
+        @for (profile of profiles(); track profile.name) {
+          <th scope="col">
+            {{ profile.name }}
+            @if (profile.name !== 'DEFAULT') {
+              <button
+                type="button"
+                class="small danger"
+                [attr.data-drop]="profile.name"
+                [disabled]="busy()"
+                (click)="askDrop(profile.name)"
+              >
+                Drop
+              </button>
+            }
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (resource of resources(); track resource) {
+        <tr>
+          <th scope="row">{{ resource }}</th>
+          @for (profile of profiles(); track profile.name) {
+            <td>{{ limitOf(profile, resource) }}</td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+  <p class="hint">DEFAULT means the value of the DEFAULT profile.</p>
+}
+
+@if (pendingDrop()) {
+  <div class="confirm" role="alertdialog" aria-label="Confirm drop">
+    <p>
+      Drop profile <strong>{{ pendingDrop() }}</strong
+      >? Its users get the DEFAULT profile (DROP PROFILE ... CASCADE).
+    </p>
+    <button type="button" class="danger" data-action="confirm" (click)="confirmDrop()">
+      Drop profile
+    </button>
+    <button type="button" data-action="cancel" (click)="cancelDrop()">Cancel</button>
+  </div>
+}
+
+<h2>Create or change a profile</h2>
+<form (submit)="onSave($event)" novalidate>
+  <div class="row">
+    <div class="field">
+      <label for="edit-target">Profile</label>
+      <select id="edit-target" [formField]="editForm.target">
+        <option value="">New profile</option>
+        @for (profile of profiles(); track profile.name) {
+          <option [value]="profile.name">{{ profile.name }}</option>
+        }
+      </select>
+    </div>
+    @if (editModel().target === '') {
+      <div class="field">
+        <label for="edit-name">Name</label>
+        <input id="edit-name" type="text" [formField]="editForm.name" />
+        @if (editForm.name().touched() && editForm.name().errors().length) {
+          <p class="error" role="alert">{{ editForm.name().errors()[0].message }}</p>
+        }
+      </div>
+    }
+  </div>
+  <p class="hint">
+    Fill in only the limits to set: a whole number, UNLIMITED or DEFAULT. Empty fields are left as
+    they are.
+  </p>
+  <div class="columns">
+    @for (group of ['KERNEL', 'PASSWORD']; track group) {
+      <fieldset>
+        <legend>{{ group === 'KERNEL' ? 'Resources' : 'Passwords' }}</legend>
+        @for (field of limitFields; track field.resource) {
+          @if (field.type === group) {
+            <div class="field">
+              <label [for]="'limit-' + field.resource"
+                >{{ field.resource }} ({{ field.unit }})</label
+              >
+              <input
+                type="text"
+                [id]="'limit-' + field.resource"
+                [value]="limitValues()[field.resource] ?? ''"
+                (input)="setLimit(field.resource, $event)"
+              />
+            </div>
+          }
+        }
+      </fieldset>
+    }
+  </div>
+  <button id="edit-submit" type="submit" [disabled]="busy()">
+    {{ editModel().target ? 'Change ' + editModel().target : 'Create profile' }}
+  </button>
+</form>
+
+<h2>Assign a profile to a user</h2>
+<form (submit)="onAssign($event)" novalidate>
+  <div class="row">
+    <div class="field">
+      <label for="assign-user">User</label>
+      <select id="assign-user" [formField]="assignForm.username">
+        <option value="">Select a user</option>
+        @for (username of usernames(); track username) {
+          <option [value]="username">{{ username }}</option>
+        }
+      </select>
+      @if (assignForm.username().touched() && assignForm.username().errors().length) {
+        <p class="error" role="alert">{{ assignForm.username().errors()[0].message }}</p>
+      }
+    </div>
+    <div class="field">
+      <label for="assign-profile">Profile</label>
+      <select id="assign-profile" [formField]="assignForm.profile">
+        <option value="">Select a profile</option>
+        @for (profile of profiles(); track profile.name) {
+          <option [value]="profile.name">{{ profile.name }}</option>
+        }
+      </select>
+      @if (assignForm.profile().touched() && assignForm.profile().errors().length) {
+        <p class="error" role="alert">{{ assignForm.profile().errors()[0].message }}</p>
+      }
+    </div>
+  </div>
+  <button id="assign-submit" type="submit" [disabled]="busy()">Assign</button>
+</form>
