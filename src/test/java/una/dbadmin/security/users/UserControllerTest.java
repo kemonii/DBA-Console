@@ -79,6 +79,21 @@ class UserControllerTest {
     }
 
     @Test
+    void locksAndUnlocksAUser() throws Exception {
+        when(jdbc.queryForList(UserService.MAINTAINED_QUERY, String.class, "PRUEBA")).thenReturn(List.of("N"));
+
+        mvc.perform(post("/api/security/users/PRUEBA/lock"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("User locked"));
+        mvc.perform(post("/api/security/users/PRUEBA/unlock"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("User unlocked"));
+
+        verify(jdbc).execute("ALTER USER PRUEBA ACCOUNT LOCK");
+        verify(jdbc).execute("ALTER USER PRUEBA ACCOUNT UNLOCK");
+    }
+
+    @Test
     void dropRequiresConfirmation() throws Exception {
         when(jdbc.queryForList(UserService.MAINTAINED_QUERY, String.class, "PRUEBA")).thenReturn(List.of("N"));
 

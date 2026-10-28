@@ -51,6 +51,20 @@ public class UserController {
         return OperationResult.ok("User " + name + " created", name);
     }
 
+    @PostMapping("/{name}/lock")
+    @Operation(summary = "Lock a user account")
+    public OperationResult lock(@PathVariable String name) {
+        userService.setLocked(name, true);
+        return OperationResult.ok("User locked", null);
+    }
+
+    @PostMapping("/{name}/unlock")
+    @Operation(summary = "Unlock a user account")
+    public OperationResult unlock(@PathVariable String name) {
+        userService.setLocked(name, false);
+        return OperationResult.ok("User unlocked", null);
+    }
+
     @DeleteMapping("/{name}")
     @Operation(summary = "Drop a user", description = "Requires confirm=true; cascade=true also drops its objects.")
     public OperationResult drop(@PathVariable String name,

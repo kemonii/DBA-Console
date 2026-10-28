@@ -108,6 +108,27 @@ class UserServiceTest {
         verify(jdbc, never()).execute(anyString());
     }
 
+    // ---- lock --------------------------------------------------------------------------------------------------
+
+    @Test
+    void lockAndUnlock() {
+        userExists("PRUEBA", "N");
+
+        service.setLocked("prueba", true);
+        service.setLocked("prueba", false);
+
+        verify(jdbc).execute("ALTER USER PRUEBA ACCOUNT LOCK");
+        verify(jdbc).execute("ALTER USER PRUEBA ACCOUNT UNLOCK");
+    }
+
+    @Test
+    void lockRefusesUsersMaintainedByOracle() {
+        userExists("SYSTEM", "Y");
+
+        assertThrows(IllegalArgumentException.class, () -> service.setLocked("system", true));
+        verify(jdbc, never()).execute(anyString());
+    }
+
     // ---- drop --------------------------------------------------------------------------------------------------
 
     @Test
