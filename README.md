@@ -32,15 +32,16 @@ The endpoints available in this version are the health check described under [Ge
 ## Prerequisites
 
 - JDK 17 or later
-- Maven 3.9 or later
 - Oracle Database 21c XE
 - Node.js 22.22.3+, 24.15+, or 26+ (odd-numbered versions 23 and 25 are not supported) and npm (frontend only)
+
+Maven does not need to be installed: the Maven Wrapper (`mvnw` / `mvnw.cmd`) downloads the version the project uses on first run.
 
 The application must run on the same host as the database. Backups invoke the `expdp` and `impdp` utilities, which must be available on the `PATH`, and the dump and log files they produce are written to the database server's file system.
 
 ## Configuration
 
-The application reads its settings from environment variables. None of them have default values, and credentials must never be written to a committed file. See [`.env.example`](.env.example) for a template.
+The application reads the following settings. None of them have default values, and credentials must never be written to a committed file.
 
 | Variable | Description | Example |
 |---|---|---|
@@ -54,6 +55,20 @@ The application reads its settings from environment variables. None of them have
 `DB_USER` needs administrative privileges, since the application reads `DBA_*` and `V$` views, runs DDL, and performs full database exports. On a local installation, connecting as `SYSTEM` to `XEPDB1` is sufficient.
 
 Datafile locations differ between Windows and Linux installations, which is why `DATAFILE_DIR` is configurable.
+
+### `.env` file (recommended)
+
+Copy [`.env.example`](.env.example) to `.env` in the project root and fill in your values. The application reads it when started from the project root, and `.env` is ignored by Git.
+
+```powershell
+Copy-Item .env.example .env
+```
+
+`.env` is read as a Java properties file, so write Windows paths with forward slashes, for example `DATAFILE_DIR=C:/app/oracle/oradata/XE/XEPDB1`. A backslash starts an escape sequence.
+
+### Environment variables
+
+Environment variables take precedence over `.env`, so they can also be set in the shell, for example on a machine without a `.env` file.
 
 PowerShell:
 
@@ -91,12 +106,16 @@ export DATAFILE_DIR="/opt/oracle/oradata/XE/XEPDB1"
    cd DBA-Console
    ```
 
-2. Set the environment variables described in [Configuration](#configuration).
+2. Create the `.env` file or set the environment variables described in [Configuration](#configuration).
 
-3. Start the application:
+3. Start the application from the project root:
+
+   ```powershell
+   .\mvnw.cmd spring-boot:run   # Windows
+   ```
 
    ```bash
-   mvn spring-boot:run
+   ./mvnw spring-boot:run       # Linux and macOS
    ```
 
 4. Open the API documentation at <http://localhost:8080/swagger-ui.html>.
@@ -120,7 +139,7 @@ export DATAFILE_DIR="/opt/oracle/oradata/XE/XEPDB1"
 To build and run the backend tests (no database required):
 
 ```bash
-mvn verify
+./mvnw verify   # .\mvnw.cmd verify on Windows
 ```
 
 To build and run the frontend tests:
