@@ -3,9 +3,12 @@ package una.dbadmin.security.auditing;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+
+import una.dbadmin.common.OracleIdentifiers;
 
 /**
  * Traditional auditing with the statements and views from the course ("Auditoría Oracle"). The audit trail is
@@ -25,6 +28,9 @@ public class AuditService {
     static final String OBJECT_OPTIONS_QUERY = "SELECT owner, object_name, object_type, ins, upd, del, sel "
             + "FROM dba_obj_audit_opts WHERE ins <> '-/-' OR upd <> '-/-' OR del <> '-/-' OR sel <> '-/-' "
             + "ORDER BY owner, object_name";
+
+    /** The table actions audited in class; DBA_OBJ_AUDIT_OPTS shows them as INS, UPD, DEL and SEL. */
+    static final Set<String> TABLE_ACTIONS = Set.of("INSERT", "UPDATE", "DELETE", "SELECT");
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -60,6 +66,42 @@ public class AuditService {
     /** Runs {@code NOAUDIT SESSION [WHENEVER [NOT] SUCCESSFUL]}. */
     public void stopAuditingSessions(Whenever whenever) {
         jdbcTemplate.execute("NOAUDIT SESSION" + orAlways(whenever).clause());
+    }
+
+    /**
+     * Runs {@code AUDIT <actions> ON <owner>.<table> BY ACCESS | BY SESSION}, for example
+     * {@code AUDIT INSERT, UPDATE, DELETE ON HR.JOBS BY ACCESS}.
+     *
+     * @param byAccess one record per statement ({@code BY ACCESS}) instead of one per session
+     */
+    public void auditTable(String owner, String table, List<String> actions, boolean byAccess) {
+        jdbcTemplate.execute("AUDIT " + requireActions(actions) + " ON " + qualified(owner, table)
+                + (byAccess ? " BY ACCESS" : " BY SESSION"));
+    }
+
+    /** Runs {@code NOAUDIT <actions> ON <owner>.<table>}. */
+    public void stopAuditingTable(String owner, String table, List<String> actions) {
+        jdbcTemplate.execute("NOAUDIT " + requireActions(actions) + " ON " + qualified(owner, table));
+    }
+
+    private static String qualified(String owner, String table) {
+        return OracleIdentifiers.requireValid(owner) + "." + OracleIdentifiers.requireValid(table);
+    }
+
+    private static String requireActions(List<String> actions) {
+        if (actions == null || actions.isEmpty()) {
+            throw new IllegalArgumentException("Select at least one action to audit");
+        }
+        List<String> valid = actions.stream()
+                .map(action -> action == null ? "" : action.trim().toUpperCase(Locale.ROOT))
+                .distinct()
+                .toList();
+        for (String action : valid) {
+            if (!TABLE_ACTIONS.contains(action)) {
+                throw new IllegalArgumentException("Unknown table action: " + action);
+            }
+        }
+        return String.join(", ", valid);
     }
 
     private static Whenever orAlways(Whenever whenever) {

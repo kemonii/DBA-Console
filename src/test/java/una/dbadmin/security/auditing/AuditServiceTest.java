@@ -1,7 +1,10 @@
 package una.dbadmin.security.auditing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -90,5 +93,41 @@ class AuditServiceTest {
 
         verify(jdbc).execute("NOAUDIT SESSION");
         verify(jdbc).execute("NOAUDIT SESSION WHENEVER NOT SUCCESSFUL");
+    }
+
+    // ---- tables ------------------------------------------------------------------------------------------------
+
+    @Test
+    void auditTableAsInClass() {
+        service.auditTable("hr", "jobs", List.of("insert", "update", "delete"), true);
+
+        verify(jdbc).execute("AUDIT INSERT, UPDATE, DELETE ON HR.JOBS BY ACCESS");
+    }
+
+    @Test
+    void auditTableBySession() {
+        service.auditTable("HR", "EMPLOYEES", List.of("SELECT", "select"), false);
+
+        verify(jdbc).execute("AUDIT SELECT ON HR.EMPLOYEES BY SESSION");
+    }
+
+    @Test
+    void stopAuditingTable() {
+        service.stopAuditingTable("hr", "jobs", List.of("INSERT", "DELETE"));
+
+        verify(jdbc).execute("NOAUDIT INSERT, DELETE ON HR.JOBS");
+    }
+
+    @Test
+    void auditTableRejectsInvalidInput() {
+        assertThrows(IllegalArgumentException.class, () -> service.auditTable("HR", "JOBS", List.of(), true));
+        assertThrows(IllegalArgumentException.class, () -> service.auditTable("HR", "JOBS", null, true));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.auditTable("HR", "JOBS", List.of("DROP"), true));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.auditTable("HR", "JOBS; DROP USER X", List.of("INSERT"), true));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.stopAuditingTable("H R", "JOBS", List.of("INSERT")));
+        verify(jdbc, never()).execute(anyString());
     }
 }

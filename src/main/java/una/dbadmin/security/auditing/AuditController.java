@@ -1,5 +1,7 @@
 package una.dbadmin.security.auditing;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +32,15 @@ public class AuditController {
     public record SessionAuditRequest(Whenever whenever) {
     }
 
+    /**
+     * Request body to audit actions on a table.
+     *
+     * @param actions  any of INSERT, UPDATE, DELETE, SELECT
+     * @param byAccess {@code BY ACCESS} (one record per statement) instead of {@code BY SESSION}
+     */
+    public record TableAuditRequest(String owner, String table, List<String> actions, boolean byAccess) {
+    }
+
     @GetMapping("/parameter")
     @Operation(summary = "Show the audit_trail parameter")
     public OperationResult auditTrail() {
@@ -54,5 +65,20 @@ public class AuditController {
     public OperationResult stopAuditingSessions(@RequestParam(defaultValue = "ALWAYS") Whenever whenever) {
         auditService.stopAuditingSessions(whenever);
         return OperationResult.ok("Session auditing disabled", null);
+    }
+
+    @PostMapping("/tables")
+    @Operation(summary = "Audit actions on a table (AUDIT ... ON owner.table BY ACCESS)")
+    public OperationResult auditTable(@RequestBody TableAuditRequest request) {
+        auditService.auditTable(request.owner(), request.table(), request.actions(), request.byAccess());
+        return OperationResult.ok("Table auditing enabled", null);
+    }
+
+    @DeleteMapping("/tables")
+    @Operation(summary = "Stop auditing actions on a table (NOAUDIT)", description = "actions is comma-separated.")
+    public OperationResult stopAuditingTable(@RequestParam String owner, @RequestParam String table,
+                                             @RequestParam List<String> actions) {
+        auditService.stopAuditingTable(owner, table, actions);
+        return OperationResult.ok("Table auditing disabled", null);
     }
 }

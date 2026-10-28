@@ -75,6 +75,33 @@ class AuditControllerTest {
     }
 
     @Test
+    void enablesAndDisablesTableAuditing() throws Exception {
+        mvc.perform(post("/api/security/auditing/tables")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"owner":"HR","table":"JOBS","actions":["INSERT","UPDATE","DELETE"],"byAccess":true}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Table auditing enabled"));
+        mvc.perform(delete("/api/security/auditing/tables")
+                        .param("owner", "HR")
+                        .param("table", "JOBS")
+                        .param("actions", "INSERT,UPDATE,DELETE"))
+                .andExpect(status().isOk());
+
+        verify(jdbc).execute("AUDIT INSERT, UPDATE, DELETE ON HR.JOBS BY ACCESS");
+        verify(jdbc).execute("NOAUDIT INSERT, UPDATE, DELETE ON HR.JOBS");
+    }
+
+    @Test
+    void rejectsAnUnknownTableAction() throws Exception {
+        mvc.perform(post("/api/security/auditing/tables")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"owner\":\"HR\",\"table\":\"JOBS\",\"actions\":[\"TRUNCATE\"]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Unknown table action: TRUNCATE"));
+    }
+
+    @Test
     void rejectsAnUnknownWhenever() throws Exception {
         mvc.perform(delete("/api/security/auditing/session").param("whenever", "SOMETIMES"))
                 .andExpect(status().isBadRequest());
