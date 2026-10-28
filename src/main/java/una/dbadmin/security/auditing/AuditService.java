@@ -26,9 +26,13 @@ public class AuditService {
     static final String STATEMENT_OPTIONS_QUERY =
             "SELECT user_name, audit_option, success, failure FROM dba_stmt_audit_opts ORDER BY audit_option, user_name";
 
-    /** DBA_OBJ_AUDIT_OPTS has a row for every object, so only the audited ones are read. */
+    /**
+     * DBA_OBJ_AUDIT_OPTS has a row for every object, so only the audited ones are read. Oracle audits some of its own
+     * objects by default (for example DVSYS tables), so schemas maintained by Oracle are left out.
+     */
     static final String OBJECT_OPTIONS_QUERY = "SELECT owner, object_name, object_type, ins, upd, del, sel "
-            + "FROM dba_obj_audit_opts WHERE ins <> '-/-' OR upd <> '-/-' OR del <> '-/-' OR sel <> '-/-' "
+            + "FROM dba_obj_audit_opts WHERE (ins <> '-/-' OR upd <> '-/-' OR del <> '-/-' OR sel <> '-/-') "
+            + "AND owner NOT IN (SELECT username FROM dba_users WHERE oracle_maintained = 'Y') "
             + "ORDER BY owner, object_name";
 
     /** Each trail query filters by user only when one is given ({@code ? IS NULL}) and returns the newest first. */
