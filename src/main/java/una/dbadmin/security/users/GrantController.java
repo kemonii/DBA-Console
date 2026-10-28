@@ -1,5 +1,7 @@
 package una.dbadmin.security.users;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +36,11 @@ public class GrantController {
 
     /** Request body to grant a role. */
     public record RoleGrantRequest(String role, String grantee, boolean adminOption) {
+    }
+
+    /** Request body to grant privileges on an object, for example SELECT and INSERT on HR.EMPLOYEES. */
+    public record ObjectPrivilegeGrantRequest(List<String> privileges, String owner, String object, String grantee,
+                                              boolean grantOption) {
     }
 
     @GetMapping("/system-privileges")
@@ -74,5 +81,21 @@ public class GrantController {
     public OperationResult revokeRole(@RequestParam String role, @RequestParam String grantee) {
         grantService.revokeRole(role, grantee);
         return OperationResult.ok("Role revoked", null);
+    }
+
+    @PostMapping("/object")
+    @Operation(summary = "Grant privileges on an object")
+    public OperationResult grantObjectPrivileges(@RequestBody ObjectPrivilegeGrantRequest request) {
+        grantService.grantObjectPrivileges(request.privileges(), request.owner(), request.object(),
+                request.grantee(), request.grantOption());
+        return OperationResult.ok("Privileges granted", null);
+    }
+
+    @DeleteMapping("/object")
+    @Operation(summary = "Revoke privileges on an object", description = "privileges is comma-separated.")
+    public OperationResult revokeObjectPrivileges(@RequestParam List<String> privileges, @RequestParam String owner,
+                                                  @RequestParam String object, @RequestParam String grantee) {
+        grantService.revokeObjectPrivileges(privileges, owner, object, grantee);
+        return OperationResult.ok("Privileges revoked", null);
     }
 }

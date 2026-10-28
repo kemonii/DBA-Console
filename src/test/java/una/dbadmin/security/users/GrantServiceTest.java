@@ -38,17 +38,20 @@ class GrantServiceTest {
     // ---- listing -----------------------------------------------------------------------------------------------
 
     @Test
-    void privilegesOfReadsSystemPrivilegesAndRoles() {
+    void privilegesOfReadsTheThreeViews() {
         when(jdbc.queryForList(GrantService.SYSTEM_PRIVILEGES_QUERY, "PRUEBA")).thenReturn(List.of(
                 Map.of("PRIVILEGE", "CREATE SESSION", "ADMIN_OPTION", "NO")));
         when(jdbc.queryForList(GrantService.ROLES_QUERY, "PRUEBA")).thenReturn(List.of(
                 Map.of("GRANTED_ROLE", "VENTAS_ROL", "ADMIN_OPTION", "YES", "DEFAULT_ROLE", "YES")));
+        when(jdbc.queryForList(GrantService.OBJECT_PRIVILEGES_QUERY, "PRUEBA")).thenReturn(List.of(
+                Map.of("OWNER", "HR", "TABLE_NAME", "EMPLOYEES", "PRIVILEGE", "SELECT", "GRANTABLE", "NO")));
 
         GranteePrivileges result = service.privilegesOf("prueba");
 
         assertEquals(new GranteePrivileges("PRUEBA",
                 List.of(new GranteePrivileges.SystemPrivilege("CREATE SESSION", false)),
-                List.of(new GranteePrivileges.Role("VENTAS_ROL", true, true))), result);
+                List.of(new GranteePrivileges.Role("VENTAS_ROL", true, true)),
+                List.of(new GranteePrivileges.ObjectPrivilege("HR", "EMPLOYEES", "SELECT", false))), result);
     }
 
     // ---- system privileges -------------------------------------------------------------------------------------
@@ -133,6 +136,53 @@ class GrantServiceTest {
         maintainedByOracle("DBA", true);
 
         assertThrows(IllegalArgumentException.class, () -> service.revokeRole("select_catalog_role", "dba"));
+        verify(jdbc, never()).execute(anyString());
+    }
+
+    // ---- object privileges -------------------------------------------------------------------------------------
+
+    @Test
+    void grantObjectPrivilegesAsInClass() {
+        service.grantObjectPrivileges(List.of("select", "insert", "update", "delete"), "hr", "employees", "prueba",
+                false);
+
+        verify(jdbc).execute("GRANT SELECT, INSERT, UPDATE, DELETE ON HR.EMPLOYEES TO PRUEBA");
+    }
+
+    @Test
+    void grantObjectPrivilegesToPublicWithGrantOption() {
+        service.grantObjectPrivileges(List.of("SELECT", "select"), "VENTAS", "PEDIDOS", "PUBLIC", true);
+
+        verify(jdbc).execute("GRANT SELECT ON VENTAS.PEDIDOS TO PUBLIC WITH GRANT OPTION");
+    }
+
+    @Test
+    void grantRejectsUnknownObjectPrivileges() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.grantObjectPrivileges(List.of(), "HR", "EMPLOYEES", "PRUEBA", false));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.grantObjectPrivileges(List.of("SELECT ON X TO Y; --"), "HR", "E", "P", false));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.grantObjectPrivileges(List.of("SELECT"), "HR", "EMPLOYEES x", "PRUEBA", false));
+        verify(jdbc, never()).execute(anyString());
+    }
+
+    @Test
+    void revokeObjectPrivileges() {
+        maintainedByOracle("HR", false);
+        maintainedByOracle("PRUEBA", false);
+
+        service.revokeObjectPrivileges(List.of("SELECT"), "hr", "employees", "prueba");
+
+        verify(jdbc).execute("REVOKE SELECT ON HR.EMPLOYEES FROM PRUEBA");
+    }
+
+    @Test
+    void revokeRefusesObjectsOwnedByOracle() {
+        maintainedByOracle("SYS", true);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.revokeObjectPrivileges(List.of("EXECUTE"), "sys", "dbms_output", "public"));
         verify(jdbc, never()).execute(anyString());
     }
 }

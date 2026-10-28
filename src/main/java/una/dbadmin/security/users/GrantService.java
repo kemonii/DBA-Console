@@ -2,6 +2,7 @@ package una.dbadmin.security.users;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -28,6 +29,13 @@ public class GrantService {
 
     static final String ROLES_QUERY = "SELECT granted_role, admin_option, default_role FROM dba_role_privs "
             + "WHERE grantee = ? ORDER BY granted_role";
+
+    static final String OBJECT_PRIVILEGES_QUERY = "SELECT owner, table_name, privilege, grantable FROM dba_tab_privs "
+            + "WHERE grantee = ? ORDER BY owner, table_name, privilege";
+
+    /** Object privileges from the course, plus READ and WRITE for directories. */
+    static final Set<String> OBJECT_PRIVILEGES = Set.of("SELECT", "INSERT", "UPDATE", "DELETE", "ALTER", "INDEX",
+            "REFERENCES", "EXECUTE", "DEBUG", "FLASHBACK", "READ", "WRITE", "ALL");
 
     static final String MAINTAINED_GRANTEE_QUERY = "SELECT COUNT(*) FROM ("
             + "SELECT username AS name FROM dba_users WHERE oracle_maintained = 'Y' "
@@ -58,7 +66,13 @@ public class GrantService {
                 .map(row -> new GranteePrivileges.Role(String.valueOf(row.get("GRANTED_ROLE")),
                         "YES".equals(row.get("ADMIN_OPTION")), "YES".equals(row.get("DEFAULT_ROLE"))))
                 .toList();
-        return new GranteePrivileges(grantee, system, roles);
+        List<GranteePrivileges.ObjectPrivilege> objects = jdbcTemplate.queryForList(OBJECT_PRIVILEGES_QUERY, grantee)
+                .stream()
+                .map(row -> new GranteePrivileges.ObjectPrivilege(String.valueOf(row.get("OWNER")),
+                        String.valueOf(row.get("TABLE_NAME")), String.valueOf(row.get("PRIVILEGE")),
+                        "YES".equals(row.get("GRANTABLE"))))
+                .toList();
+        return new GranteePrivileges(grantee, system, roles, objects);
     }
 
     /** Runs {@code GRANT <system privilege> TO <grantee> [WITH ADMIN OPTION]}. */
@@ -87,6 +101,43 @@ public class GrantService {
         String role = OracleIdentifiers.requireValid(roleName);
         String grantee = requireRevocableFrom(granteeName);
         jdbcTemplate.execute("REVOKE " + role + " FROM " + grantee);
+    }
+
+    /** Runs {@code GRANT <privileges> ON <owner>.<object> TO <grantee> [WITH GRANT OPTION]}. */
+    public void grantObjectPrivileges(List<String> privilegeNames, String owner, String object, String granteeName,
+                                      boolean grantOption) {
+        String privileges = requireObjectPrivileges(privilegeNames);
+        String target = OracleIdentifiers.requireValid(owner) + "." + OracleIdentifiers.requireValid(object);
+        String grantee = OracleIdentifiers.requireValid(granteeName);
+        jdbcTemplate.execute("GRANT " + privileges + " ON " + target + " TO " + grantee
+                + (grantOption ? " WITH GRANT OPTION" : ""));
+    }
+
+    /**
+     * Runs {@code REVOKE <privileges> ON <owner>.<object> FROM <grantee>}. Objects owned by Oracle (for example
+     * SYS packages granted to PUBLIC) are refused as well.
+     */
+    public void revokeObjectPrivileges(List<String> privilegeNames, String owner, String object, String granteeName) {
+        String privileges = requireObjectPrivileges(privilegeNames);
+        String target = requireRevocableFrom(owner) + "." + OracleIdentifiers.requireValid(object);
+        String grantee = requireRevocableFrom(granteeName);
+        jdbcTemplate.execute("REVOKE " + privileges + " ON " + target + " FROM " + grantee);
+    }
+
+    private static String requireObjectPrivileges(List<String> names) {
+        if (names == null || names.isEmpty()) {
+            throw new IllegalArgumentException("Select at least one object privilege");
+        }
+        List<String> privileges = names.stream()
+                .map(name -> name == null ? "" : name.trim().toUpperCase(Locale.ROOT))
+                .distinct()
+                .toList();
+        for (String privilege : privileges) {
+            if (!OBJECT_PRIVILEGES.contains(privilege)) {
+                throw new IllegalArgumentException("Unknown object privilege: " + privilege);
+            }
+        }
+        return String.join(", ", privileges);
     }
 
     /**

@@ -99,4 +99,25 @@ class GrantControllerTest {
         verify(jdbc).execute("GRANT CONNECT TO PRUEBA");
         verify(jdbc).execute("REVOKE CONNECT FROM PRUEBA");
     }
+
+    @Test
+    void grantsAndRevokesObjectPrivileges() throws Exception {
+        when(jdbc.queryForObject(GrantService.MAINTAINED_GRANTEE_QUERY, Integer.class, "HR")).thenReturn(0);
+        when(jdbc.queryForObject(GrantService.MAINTAINED_GRANTEE_QUERY, Integer.class, "PRUEBA")).thenReturn(0);
+
+        mvc.perform(post("/api/security/grants/object")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"privileges":["SELECT","INSERT"],"owner":"HR","object":"EMPLOYEES","grantee":"PRUEBA"}"""))
+                .andExpect(status().isOk());
+        mvc.perform(delete("/api/security/grants/object")
+                        .param("privileges", "SELECT,INSERT")
+                        .param("owner", "HR")
+                        .param("object", "EMPLOYEES")
+                        .param("grantee", "PRUEBA"))
+                .andExpect(status().isOk());
+
+        verify(jdbc).execute("GRANT SELECT, INSERT ON HR.EMPLOYEES TO PRUEBA");
+        verify(jdbc).execute("REVOKE SELECT, INSERT ON HR.EMPLOYEES FROM PRUEBA");
+    }
 }
