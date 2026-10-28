@@ -1,0 +1,98 @@
+<h2>{{ title }}</h2>
+
+<form (submit)="onSubmit($event)" novalidate>
+  <div class="field">
+    <label for="type">Scope</label>
+    <select id="type" [formField]="dataForm.type">
+      <option value="TABLE">Table</option>
+      <option value="SCHEMA">Schema</option>
+      <option value="FULL">Full database</option>
+    </select>
+  </div>
+
+  @if (model().type !== 'FULL') {
+    <div class="field">
+      <label for="schema">Schema</label>
+      <input id="schema" type="text" autocomplete="off" [formField]="dataForm.schema" />
+      @if (dataForm.schema().touched() && dataForm.schema().errors().length) {
+        <p class="error" role="alert">{{ dataForm.schema().errors()[0].message }}</p>
+      }
+    </div>
+  }
+  @if (model().type === 'TABLE') {
+    <div class="field">
+      <label for="table">Table</label>
+      <input id="table" type="text" autocomplete="off" [formField]="dataForm.table" />
+      @if (dataForm.table().touched() && dataForm.table().errors().length) {
+        <p class="error" role="alert">{{ dataForm.table().errors()[0].message }}</p>
+      }
+    </div>
+  }
+
+  <div class="field">
+    <label for="directory">Directory object</label>
+    <input id="directory" type="text" autocomplete="off" [formField]="dataForm.directory" />
+    @if (dataForm.directory().touched() && dataForm.directory().errors().length) {
+      <p class="error" role="alert">{{ dataForm.directory().errors()[0].message }}</p>
+    }
+  </div>
+  <div class="field">
+    <label for="fileName">File name (without extension)</label>
+    <input id="fileName" type="text" autocomplete="off" [formField]="dataForm.fileName" />
+    @if (dataForm.fileName().touched() && dataForm.fileName().errors().length) {
+      <p class="error" role="alert">{{ dataForm.fileName().errors()[0].message }}</p>
+    }
+  </div>
+
+  @if (canFilter()) {
+    <div class="field">
+      <label for="filterKind">Tables</label>
+      <select id="filterKind" [formField]="dataForm.filterKind">
+        <option value="none">All tables</option>
+        <option value="include">Only these tables</option>
+        <option value="exclude">All except these tables</option>
+      </select>
+    </div>
+    @if (model().filterKind !== 'none') {
+      <div class="field">
+        <label for="filterTables">Table names, separated by commas</label>
+        <textarea id="filterTables" rows="2" [formField]="dataForm.filterTables"></textarea>
+      </div>
+    }
+  }
+
+  @if (isFullRecovery()) {
+    <p class="warning">
+      A full recovery overwrites the whole database. Run it only on purpose and never during a demo.
+    </p>
+    <label class="inline" for="confirmFull">
+      <input id="confirmFull" type="checkbox" [formField]="dataForm.confirmFull" />
+      I understand and want to run a full recovery
+    </label>
+  }
+
+  <div><button type="submit" [disabled]="loading()">{{ loading() ? 'Running...' : title }}</button></div>
+</form>
+
+<section aria-live="polite">
+  @if (loading()) {
+    <p class="running" role="status">Running. This can take a minute or more, so keep this page open.</p>
+  }
+  @if (outcome(); as result) {
+    <p [class]="result.ok ? 'success' : 'error'" [attr.role]="result.ok ? null : 'alert'">{{ result.message }}</p>
+  }
+  @if (run(); as details) {
+    <h3>Command</h3>
+    <pre class="command">{{ details.command }}</pre>
+    <h3>Output</h3>
+    <pre class="output">{{ details.output.join('\n') }}</pre>
+    <button type="button" class="view-log" (click)="viewLog()">View log</button>
+  }
+  @if (logLines(); as lines) {
+    <h3>Log file</h3>
+    <pre class="log">{{ lines.join('\n') }}</pre>
+  }
+  @if (logError()) {
+    <p class="log-error error" role="alert">{{ logError() }}</p>
+  }
+</section>

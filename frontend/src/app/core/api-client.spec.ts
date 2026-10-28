@@ -55,6 +55,31 @@ describe('ApiClient', () => {
     expect((error as ApiError).status).toBe(500);
   });
 
+  it('keeps the data of an error response so screens can show the details', () => {
+    let error: unknown;
+    api.post('/backup', {}).subscribe({ error: (e) => (error = e) });
+
+    http
+      .expectOne('/api/backup')
+      .flush(
+        { ok: false, message: 'Backup failed with exit code 1', data: { output: ['ORA-39002'] } },
+        { status: 500, statusText: 'Server Error' },
+      );
+
+    expect((error as ApiError).data).toEqual({ output: ['ORA-39002'] });
+  });
+
+  it('has no data when the error response carries none', () => {
+    let error: unknown;
+    api.get('/health').subscribe({ error: (e) => (error = e) });
+
+    http
+      .expectOne('/api/health')
+      .flush({ ok: false, message: 'down', data: null }, { status: 500, statusText: 'Server Error' });
+
+    expect((error as ApiError).data).toBeNull();
+  });
+
   it('falls back to a generic message when the error body is not an OperationResult', () => {
     let error: unknown;
     api.get('/health').subscribe({ error: (e) => (error = e) });
