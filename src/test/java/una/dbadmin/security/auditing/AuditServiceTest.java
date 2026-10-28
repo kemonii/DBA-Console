@@ -2,6 +2,8 @@ package una.dbadmin.security.auditing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -65,5 +67,28 @@ class AuditServiceTest {
                 options.statementOptions());
         assertEquals(List.of(new AuditOptions.ObjectOption("HR", "JOBS", "TABLE", "A/A", "A/A", "A/A", "-/-")),
                 options.objectOptions());
+    }
+
+    // ---- sessions ----------------------------------------------------------------------------------------------
+
+    @Test
+    void auditSessionsAsInClass() {
+        service.auditSessions(Whenever.ALWAYS);
+        service.auditSessions(Whenever.SUCCESSFUL);
+        service.auditSessions(Whenever.NOT_SUCCESSFUL);
+        service.auditSessions(null);
+
+        verify(jdbc, times(2)).execute("AUDIT SESSION");
+        verify(jdbc).execute("AUDIT SESSION WHENEVER SUCCESSFUL");
+        verify(jdbc).execute("AUDIT SESSION WHENEVER NOT SUCCESSFUL");
+    }
+
+    @Test
+    void stopAuditingSessions() {
+        service.stopAuditingSessions(Whenever.ALWAYS);
+        service.stopAuditingSessions(Whenever.NOT_SUCCESSFUL);
+
+        verify(jdbc).execute("NOAUDIT SESSION");
+        verify(jdbc).execute("NOAUDIT SESSION WHENEVER NOT SUCCESSFUL");
     }
 }

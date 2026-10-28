@@ -52,6 +52,20 @@ public class AuditService {
         return new AuditOptions(statements, objects);
     }
 
+    /** Runs {@code AUDIT SESSION [WHENEVER [NOT] SUCCESSFUL]}: records logins in DBA_AUDIT_SESSION. */
+    public void auditSessions(Whenever whenever) {
+        jdbcTemplate.execute("AUDIT SESSION" + orAlways(whenever).clause());
+    }
+
+    /** Runs {@code NOAUDIT SESSION [WHENEVER [NOT] SUCCESSFUL]}. */
+    public void stopAuditingSessions(Whenever whenever) {
+        jdbcTemplate.execute("NOAUDIT SESSION" + orAlways(whenever).clause());
+    }
+
+    private static Whenever orAlways(Whenever whenever) {
+        return whenever == null ? Whenever.ALWAYS : whenever;
+    }
+
     private static String text(Map<String, Object> row, String column) {
         Object value = row.get(column);
         return value == null ? null : value.toString();

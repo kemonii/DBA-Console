@@ -1,8 +1,13 @@
 package una.dbadmin.security.auditing;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -11,6 +16,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -52,5 +58,27 @@ class AuditControllerTest {
                 .andExpect(jsonPath("$.data.statementOptions").isEmpty())
                 .andExpect(jsonPath("$.data.objectOptions[0].objectName").value("JOBS"))
                 .andExpect(jsonPath("$.data.objectOptions[0].insert").value("A/A"));
+    }
+
+    @Test
+    void enablesAndDisablesSessionAuditing() throws Exception {
+        mvc.perform(post("/api/security/auditing/session")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"whenever\":\"NOT_SUCCESSFUL\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Session auditing enabled"));
+        mvc.perform(delete("/api/security/auditing/session"))
+                .andExpect(status().isOk());
+
+        verify(jdbc).execute("AUDIT SESSION WHENEVER NOT SUCCESSFUL");
+        verify(jdbc).execute("NOAUDIT SESSION");
+    }
+
+    @Test
+    void rejectsAnUnknownWhenever() throws Exception {
+        mvc.perform(delete("/api/security/auditing/session").param("whenever", "SOMETIMES"))
+                .andExpect(status().isBadRequest());
+
+        verify(jdbc, never()).execute(anyString());
     }
 }
