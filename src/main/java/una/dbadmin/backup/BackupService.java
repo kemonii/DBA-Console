@@ -26,7 +26,7 @@ public class BackupService {
      * @throws IllegalArgumentException if the request contains an invalid name; nothing is executed in that case
      */
     public BackupResult backup(BackupRequest request) {
-        ExpdpCommand command = builder.build(request);
+        DataPumpCommand command = builder.build(request);
         ProcessResult result = runner.run(command.args());
         boolean success = result.exitCode() == 0 || result.exitCode() == EXIT_SUCCESS_WITH_WARNINGS;
         return new BackupResult(success, result.exitCode(), command.display(), mask(result.output()));
