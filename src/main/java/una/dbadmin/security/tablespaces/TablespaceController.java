@@ -1,10 +1,12 @@
 package una.dbadmin.security.tablespaces;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -54,6 +56,13 @@ public class TablespaceController {
         String name = tablespaceService.create(
                 request.name(), request.fileName(), request.sizeMb(), request.nextMb(), request.maxSizeMb());
         return OperationResult.ok("Tablespace " + name + " created", name);
+    }
+
+    @DeleteMapping("/{name}")
+    @Operation(summary = "Drop a tablespace including its contents and datafiles", description = "Requires confirm=true.")
+    public OperationResult drop(@PathVariable String name, @RequestParam(defaultValue = "false") boolean confirm) {
+        tablespaceService.drop(name, confirm);
+        return OperationResult.ok("Tablespace dropped", null);
     }
 
     @GetMapping("/{name}/datafiles")

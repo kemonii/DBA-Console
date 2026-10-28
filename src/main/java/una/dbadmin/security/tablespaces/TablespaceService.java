@@ -4,6 +4,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -13,8 +14,8 @@ import org.springframework.stereotype.Service;
 import una.dbadmin.common.OracleIdentifiers;
 
 /**
- * Creates tablespaces and adds or resizes datafiles with the statements from the course ("Mantenimiento básico
- * de bases de datos", class 4). New datafiles are always created under the configured {@code DATAFILE_DIR}, so a request only
+ * Creates, resizes and drops tablespaces with the statements from the course ("Mantenimiento básico de bases de
+ * datos", class 4). New datafiles are always created under the configured {@code DATAFILE_DIR}, so a request only
  * names the file, never a path.
  */
 @Service
@@ -42,6 +43,9 @@ public class TablespaceService {
 
     /** Largest smallfile datafile with the default 8 KB block size (4,194,303 blocks), rounded down. */
     static final int MAX_SIZE_MB = 32767;
+
+    /** Dropping these breaks the database, so the request is refused before Oracle is asked. */
+    private static final Set<String> PROTECTED = Set.of("SYSTEM", "SYSAUX");
 
     /** A plain file name ending in .dbf: no directory separators, so it always lands in DATAFILE_DIR. */
     private static final Pattern DATAFILE_NAME =
@@ -128,6 +132,24 @@ public class TablespaceService {
         }
         String path = requireQuotable(paths.get(0));
         jdbcTemplate.execute("ALTER DATABASE DATAFILE '" + path + "' RESIZE " + size + "M");
+    }
+
+    /**
+     * Runs {@code DROP TABLESPACE ... INCLUDING CONTENTS AND DATAFILES}, which removes every object in it and its
+     * files on disk.
+     *
+     * @throws IllegalArgumentException without {@code confirm}, or for SYSTEM and SYSAUX
+     */
+    public void drop(String name, boolean confirm) {
+        String tablespace = OracleIdentifiers.requireValid(name);
+        if (PROTECTED.contains(tablespace)) {
+            throw new IllegalArgumentException("Tablespace " + tablespace + " cannot be dropped");
+        }
+        if (!confirm) {
+            throw new IllegalArgumentException("Dropping a tablespace deletes its objects and datafiles. "
+                    + "Send confirm=true to drop it");
+        }
+        jdbcTemplate.execute("DROP TABLESPACE " + tablespace + " INCLUDING CONTENTS AND DATAFILES");
     }
 
     private String datafilePath(String fileName) {

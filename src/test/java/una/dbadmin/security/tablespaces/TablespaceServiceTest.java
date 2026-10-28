@@ -144,4 +144,26 @@ class TablespaceServiceTest {
         assertThrows(IllegalArgumentException.class, () -> service.resizeDatafile("ventas", 1, 5));
         verify(jdbc, never()).execute(anyString());
     }
+
+    // ---- drop --------------------------------------------------------------------------------------------------
+
+    @Test
+    void dropIncludesContentsAndDatafiles() {
+        service.drop("ventas", true);
+
+        verify(jdbc).execute("DROP TABLESPACE VENTAS INCLUDING CONTENTS AND DATAFILES");
+    }
+
+    @Test
+    void dropRequiresConfirmation() {
+        assertThrows(IllegalArgumentException.class, () -> service.drop("ventas", false));
+        verify(jdbc, never()).execute(anyString());
+    }
+
+    @Test
+    void dropRefusesSystemTablespaces() {
+        assertThrows(IllegalArgumentException.class, () -> service.drop("system", true));
+        assertThrows(IllegalArgumentException.class, () -> service.drop("SYSAUX", true));
+        verify(jdbc, never()).execute(anyString());
+    }
 }

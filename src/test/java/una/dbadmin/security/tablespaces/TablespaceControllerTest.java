@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -152,5 +153,23 @@ class TablespaceControllerTest {
                 .andExpect(jsonPath("$.ok").value(true));
 
         verify(jdbc).execute("ALTER DATABASE DATAFILE '/u01/oradata/XEPDB1/ventas01.dbf' RESIZE 5M");
+    }
+
+    @Test
+    void dropRequiresConfirmation() throws Exception {
+        mvc.perform(delete("/api/security/tablespaces/VENTAS"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.ok").value(false));
+
+        verify(jdbc, never()).execute(anyString());
+    }
+
+    @Test
+    void dropsATablespaceWhenConfirmed() throws Exception {
+        mvc.perform(delete("/api/security/tablespaces/VENTAS").param("confirm", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ok").value(true));
+
+        verify(jdbc).execute("DROP TABLESPACE VENTAS INCLUDING CONTENTS AND DATAFILES");
     }
 }
