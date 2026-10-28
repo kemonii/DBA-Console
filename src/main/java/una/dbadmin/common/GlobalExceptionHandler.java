@@ -1,5 +1,7 @@
 package una.dbadmin.common;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,6 +34,36 @@ public class GlobalExceptionHandler {
         log.error("Database error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(OperationResult.error(describe(ex)));
+    }
+
+    /**
+     * File system and process failures, such as an unreadable log or {@code expdp} missing from the PATH. A message
+     * written for the user is returned as it is; an exception that only wraps its cause reports the cause's message.
+     */
+    @ExceptionHandler(UncheckedIOException.class)
+    public ResponseEntity<OperationResult> handleUncheckedIo(UncheckedIOException ex) {
+        log.error("I/O error", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(OperationResult.error(describe(ex)));
+    }
+
+    /**
+     * Failures that are not caused by the request, such as a Data Pump run that timed out or missing configuration.
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<OperationResult> handleIllegalState(IllegalStateException ex) {
+        log.error("Operation failed", ex);
+        String message = ex.getMessage() == null || ex.getMessage().isBlank() ? "Operation failed" : ex.getMessage();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(OperationResult.error(message));
+    }
+
+    private static String describe(UncheckedIOException ex) {
+        IOException cause = ex.getCause();
+        boolean onlyWrapsCause = cause != null && String.valueOf(cause).equals(ex.getMessage());
+        if (!onlyWrapsCause && ex.getMessage() != null && !ex.getMessage().isBlank()) {
+            return ex.getMessage();
+        }
+        String detail = cause != null && cause.getMessage() != null ? cause.getMessage() : "unknown error";
+        return "File system error: " + detail;
     }
 
     /**

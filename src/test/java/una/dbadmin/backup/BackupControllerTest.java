@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -54,6 +56,17 @@ class BackupControllerTest {
 
         verify(service).backup(
                 new BackupRequest(BackupType.SCHEMA, "hr", null, "respaldo", "hr", null, List.of("audit_log")));
+    }
+
+    @Test
+    void missingOracleUtilitiesAreReportedAsAnOperationResult() throws Exception {
+        when(service.backup(any())).thenThrow(new UncheckedIOException(
+                "Could not run expdp; check that it is installed and on the PATH", new IOException("not found")));
+
+        mvc.perform(post("/api/backup").contentType(MediaType.APPLICATION_JSON).content(BODY))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.ok").value(false))
+                .andExpect(jsonPath("$.message").value("Could not run expdp; check that it is installed and on the PATH"));
     }
 
     @Test

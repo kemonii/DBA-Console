@@ -41,6 +41,13 @@ class BackupLogServiceTest {
     }
 
     @Test
+    void acceptsTheExtensionInUpperCase() throws IOException {
+        Files.writeString(directory.resolve("NW.LOG"), "Import started\n");
+
+        assertEquals(List.of("Import started"), service.read("respaldo", "NW.LOG"));
+    }
+
+    @Test
     void returnsOnlyTheLastLinesOfALongLog() throws IOException {
         Files.write(directory.resolve("big.log"), IntStream.rangeClosed(1, 600).mapToObj(i -> "line " + i).toList());
 
