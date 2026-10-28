@@ -1,0 +1,3 @@
+# Keep the Maven Wrapper scripts runnable on every platform
+/mvnw text eol=lf
+*.cmd text eol=crlf
