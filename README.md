@@ -13,9 +13,9 @@ DBA-Console exposes common database administration tasks for Oracle Database 21c
 | Backup & Recovery | Data Pump exports (`expdp`) by table, schema, or full database; recovery with `impdp` and Flashback. | Planned |
 | Query Tuning & Performance | Execution plans, optimizer statistics, and index maintenance; monitoring of the instance, sessions, and locks. | Planned |
 | Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Planned |
-| File Management | Oracle directory objects and the dump and log files stored in them. | Planned |
+| File Management | Oracle directory objects and the dump and log files stored in them. | API available |
 
-The only endpoint available in this version is the health check described under [Getting started](#getting-started). The frontend has an empty page for each module and one example screen.
+The endpoints available in this version are the health check described under [Getting started](#getting-started) and the [File Management endpoints](#file-management-endpoints). The frontend has an empty page for each module and one example screen.
 
 ## Tech stack
 
@@ -194,6 +194,23 @@ Errors use the same format with `ok` set to `false`. Invalid input returns HTTP 
   "data": null
 }
 ```
+
+## File Management endpoints
+
+All paths start with `/api/files`. Directory and user names are validated as Oracle identifiers. The full request and response schemas are in Swagger UI.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/directories` | List directory objects (`DBA_DIRECTORIES`) |
+| `POST` | `/directories` | Create or replace a directory object. Body: `{"name": "BACKUPS", "path": "/u01/backups"}` |
+| `DELETE` | `/directories/{name}` | Drop a directory object |
+| `POST` | `/directories/{name}/grants` | Grant `READ, WRITE` on the directory to a user. Body: `{"user": "SCOTT"}` |
+| `DELETE` | `/directories/{name}/grants/{user}` | Revoke `READ, WRITE` on the directory from a user |
+| `GET` | `/directories/{name}/files` | List the `.dmp` and `.log` files in the directory, with size and last modified date |
+| `GET` | `/directories/{name}/files/{file}/content` | View a `.log` file (limited to 1000 lines and 256 KB; `truncated` tells whether there is more) |
+| `DELETE` | `/directories/{name}/files/{file}?confirm=true` | Delete a backup file; without `confirm=true` the request is rejected |
+
+File names must be plain names ending in `.dmp` or `.log`, made of letters, digits, `_`, `.` and `-`. Names with path separators, `..`, or other characters are rejected with HTTP 400, and the resolved path (including symbolic links) must stay inside the directory's path. Files are read from the directory's path on the host where the application runs.
 
 ## Contributing
 
