@@ -1,5 +1,7 @@
 package una.dbadmin.backup;
 
+import java.util.List;
+
 /**
  * Builds {@code impdp} invocations. The log file gets an {@code _imp} suffix so it never overwrites the export log.
  */
@@ -21,6 +23,7 @@ public class ImpdpCommandBuilder {
     public DataPumpCommand build(RecoveryRequest request) {
         return DataPumpCommands.build("impdp", "recovery", "_imp.log",
                 user + "/" + password + "@" + connectIdentifier, user + "/******@" + connectIdentifier,
-                request.type(), request.schema(), request.table(), request.directory(), request.fileName());
+                request.type(), request.schema(), request.table(), request.directory(), request.fileName(),
+                List.of());
     }
 }
