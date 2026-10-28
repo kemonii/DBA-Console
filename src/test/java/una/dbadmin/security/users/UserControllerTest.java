@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -91,6 +92,19 @@ class UserControllerTest {
 
         verify(jdbc).execute("ALTER USER PRUEBA ACCOUNT LOCK");
         verify(jdbc).execute("ALTER USER PRUEBA ACCOUNT UNLOCK");
+    }
+
+    @Test
+    void assignsAProfile() throws Exception {
+        when(jdbc.queryForList(UserService.MAINTAINED_QUERY, String.class, "PRUEBA")).thenReturn(List.of("N"));
+
+        mvc.perform(put("/api/security/users/PRUEBA/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"profile\":\"APP_USER\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Profile assigned"));
+
+        verify(jdbc).execute("ALTER USER PRUEBA PROFILE APP_USER");
     }
 
     @Test

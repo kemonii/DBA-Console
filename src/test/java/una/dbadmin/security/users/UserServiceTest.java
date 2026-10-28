@@ -129,6 +129,27 @@ class UserServiceTest {
         verify(jdbc, never()).execute(anyString());
     }
 
+    // ---- profile -----------------------------------------------------------------------------------------------
+
+    @Test
+    void setProfileRunsAlterUser() {
+        userExists("PRUEBA", "N");
+
+        service.setProfile("prueba", "app_user");
+
+        verify(jdbc).execute("ALTER USER PRUEBA PROFILE APP_USER");
+    }
+
+    @Test
+    void setProfileRefusesUsersMaintainedByOracleAndInvalidNames() {
+        userExists("SYSTEM", "Y");
+        userExists("PRUEBA", "N");
+
+        assertThrows(IllegalArgumentException.class, () -> service.setProfile("system", "APP_USER"));
+        assertThrows(IllegalArgumentException.class, () -> service.setProfile("prueba", "app user"));
+        verify(jdbc, never()).execute(anyString());
+    }
+
     // ---- drop --------------------------------------------------------------------------------------------------
 
     @Test
