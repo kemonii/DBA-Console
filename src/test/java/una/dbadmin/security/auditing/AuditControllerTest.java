@@ -102,6 +102,31 @@ class AuditControllerTest {
     }
 
     @Test
+    void readsTheTrailWithFilters() throws Exception {
+        when(jdbc.queryForList(AuditService.TRAIL_QUERY, "PRUEBA", "PRUEBA", 10))
+                .thenReturn(List.of(Map.of("USERNAME", "PRUEBA", "ACTION_NAME", "LOGON")));
+
+        mvc.perform(get("/api/security/auditing/trail").param("username", "prueba").param("limit", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].actionName").value("LOGON"));
+    }
+
+    @Test
+    void readsSessionsAndObjects() throws Exception {
+        when(jdbc.queryForList(AuditService.SESSIONS_QUERY, (Object) null, null, AuditService.DEFAULT_LIMIT))
+                .thenReturn(List.of(Map.of("USERNAME", "PRUEBA", "OUTCOME", "Connected")));
+        when(jdbc.queryForList(AuditService.OBJECTS_QUERY, (Object) null, null, AuditService.DEFAULT_LIMIT))
+                .thenReturn(List.of(Map.of("OBJ_NAME", "JOBS", "OUTCOME", "Done")));
+
+        mvc.perform(get("/api/security/auditing/trail/sessions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].outcome").value("Connected"));
+        mvc.perform(get("/api/security/auditing/trail/objects"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].objectName").value("JOBS"));
+    }
+
+    @Test
     void rejectsAnUnknownWhenever() throws Exception {
         mvc.perform(delete("/api/security/auditing/session").param("whenever", "SOMETIMES"))
                 .andExpect(status().isBadRequest());

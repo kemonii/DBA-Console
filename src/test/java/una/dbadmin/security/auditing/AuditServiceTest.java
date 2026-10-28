@@ -9,6 +9,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,6 +119,56 @@ class AuditServiceTest {
         service.stopAuditingTable("hr", "jobs", List.of("INSERT", "DELETE"));
 
         verify(jdbc).execute("NOAUDIT INSERT, DELETE ON HR.JOBS");
+    }
+
+    // ---- trail -------------------------------------------------------------------------------------------------
+
+    @Test
+    void trailOfEveryUserWithTheDefaultLimit() {
+        LocalDateTime at = LocalDateTime.of(2026, 10, 27, 21, 5);
+        Map<String, Object> row = new HashMap<>();
+        row.put("TIMESTAMP", Timestamp.valueOf(at));
+        row.put("USERNAME", "PRUEBA");
+        row.put("ACTION_NAME", "INSERT");
+        row.put("OWNER", "HR");
+        row.put("OBJ_NAME", "JOBS");
+        row.put("PRIV_USED", null);
+        row.put("RETURNCODE", new BigDecimal("0"));
+        when(jdbc.queryForList(AuditService.TRAIL_QUERY, (Object) null, null, AuditService.DEFAULT_LIMIT))
+                .thenReturn(List.of(row));
+
+        assertEquals(List.of(new AuditEntries.TrailEntry(at, "PRUEBA", "INSERT", "HR", "JOBS", null, 0)),
+                service.trail(" ", null));
+    }
+
+    @Test
+    void sessionsOfOneUser() {
+        Map<String, Object> row = new HashMap<>();
+        row.put("USERNAME", "PRUEBA");
+        row.put("OS_USERNAME", "monica");
+        row.put("TERMINAL", "TUF");
+        row.put("OUTCOME", "Failed");
+        when(jdbc.queryForList(AuditService.SESSIONS_QUERY, "PRUEBA", "PRUEBA", 20)).thenReturn(List.of(row));
+
+        assertEquals(List.of(new AuditEntries.SessionEntry(null, null, "monica", "PRUEBA", "TUF", "Failed")),
+                service.sessions("prueba", 20));
+    }
+
+    @Test
+    void objectsAreRead() {
+        when(jdbc.queryForList(AuditService.OBJECTS_QUERY, (Object) null, null, 5)).thenReturn(List.of(Map.of(
+                "USERNAME", "PRUEBA", "OWNER", "HR", "OBJ_NAME", "JOBS", "ACTION_NAME", "UPDATE",
+                "OUTCOME", "Done")));
+
+        assertEquals(List.of(new AuditEntries.ObjectEntry(null, null, "PRUEBA", null, "HR", "JOBS", "UPDATE", "Done")),
+                service.objects(null, 5));
+    }
+
+    @Test
+    void trailRejectsInvalidFilters() {
+        assertThrows(IllegalArgumentException.class, () -> service.trail("x' OR '1'='1", null));
+        assertThrows(IllegalArgumentException.class, () -> service.trail(null, 0));
+        assertThrows(IllegalArgumentException.class, () -> service.sessions(null, AuditService.MAX_LIMIT + 1));
     }
 
     @Test

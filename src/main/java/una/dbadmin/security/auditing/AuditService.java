@@ -1,5 +1,7 @@
 package una.dbadmin.security.auditing;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,6 +30,26 @@ public class AuditService {
     static final String OBJECT_OPTIONS_QUERY = "SELECT owner, object_name, object_type, ins, upd, del, sel "
             + "FROM dba_obj_audit_opts WHERE ins <> '-/-' OR upd <> '-/-' OR del <> '-/-' OR sel <> '-/-' "
             + "ORDER BY owner, object_name";
+
+    /** Each trail query filters by user only when one is given ({@code ? IS NULL}) and returns the newest first. */
+    private static final String FILTER_AND_LIMIT =
+            " WHERE (? IS NULL OR username = ?) ORDER BY timestamp DESC FETCH FIRST ? ROWS ONLY";
+
+    static final String TRAIL_QUERY = "SELECT timestamp, username, action_name, owner, obj_name, priv_used, returncode "
+            + "FROM dba_audit_trail" + FILTER_AND_LIMIT;
+
+    /** Session query from class, with its DECODE of the return code. */
+    static final String SESSIONS_QUERY = "SELECT timestamp, logoff_time, os_username, username, terminal, "
+            + "DECODE(returncode, 0, 'Connected', 1005, 'Failed - null password', 1017, 'Failed', returncode) "
+            + "AS outcome FROM dba_audit_session" + FILTER_AND_LIMIT;
+
+    /** Object query from class, with its DECODE of the return code. */
+    static final String OBJECTS_QUERY = "SELECT timestamp, os_username, username, terminal, owner, obj_name, "
+            + "action_name, DECODE(returncode, 0, 'Done', returncode) AS outcome FROM dba_audit_object"
+            + FILTER_AND_LIMIT;
+
+    static final int DEFAULT_LIMIT = 100;
+    static final int MAX_LIMIT = 1000;
 
     /** The table actions audited in class; DBA_OBJ_AUDIT_OPTS shows them as INS, UPD, DEL and SEL. */
     static final Set<String> TABLE_ACTIONS = Set.of("INSERT", "UPDATE", "DELETE", "SELECT");
@@ -82,6 +104,51 @@ public class AuditService {
     /** Runs {@code NOAUDIT <actions> ON <owner>.<table>}. */
     public void stopAuditingTable(String owner, String table, List<String> actions) {
         jdbcTemplate.execute("NOAUDIT " + requireActions(actions) + " ON " + qualified(owner, table));
+    }
+
+    /**
+     * Newest rows of {@code DBA_AUDIT_TRAIL}.
+     *
+     * @param username only this user's actions, or every user when {@code null} or blank
+     * @param limit    number of rows, {@value #DEFAULT_LIMIT} when {@code null}, at most {@value #MAX_LIMIT}
+     */
+    public List<AuditEntries.TrailEntry> trail(String username, Integer limit) {
+        return query(TRAIL_QUERY, username, limit).stream()
+                .map(row -> new AuditEntries.TrailEntry(time(row, "TIMESTAMP"), text(row, "USERNAME"),
+                        text(row, "ACTION_NAME"), text(row, "OWNER"), text(row, "OBJ_NAME"), text(row, "PRIV_USED"),
+                        row.get("RETURNCODE") instanceof Number code ? code.intValue() : 0))
+                .toList();
+    }
+
+    /** Newest rows of {@code DBA_AUDIT_SESSION}; same parameters as {@link #trail}. */
+    public List<AuditEntries.SessionEntry> sessions(String username, Integer limit) {
+        return query(SESSIONS_QUERY, username, limit).stream()
+                .map(row -> new AuditEntries.SessionEntry(time(row, "TIMESTAMP"), time(row, "LOGOFF_TIME"),
+                        text(row, "OS_USERNAME"), text(row, "USERNAME"), text(row, "TERMINAL"),
+                        text(row, "OUTCOME")))
+                .toList();
+    }
+
+    /** Newest rows of {@code DBA_AUDIT_OBJECT}; same parameters as {@link #trail}. */
+    public List<AuditEntries.ObjectEntry> objects(String username, Integer limit) {
+        return query(OBJECTS_QUERY, username, limit).stream()
+                .map(row -> new AuditEntries.ObjectEntry(time(row, "TIMESTAMP"), text(row, "OS_USERNAME"),
+                        text(row, "USERNAME"), text(row, "TERMINAL"), text(row, "OWNER"), text(row, "OBJ_NAME"),
+                        text(row, "ACTION_NAME"), text(row, "OUTCOME")))
+                .toList();
+    }
+
+    private List<Map<String, Object>> query(String sql, String username, Integer limit) {
+        String user = username == null || username.isBlank() ? null : OracleIdentifiers.requireValid(username);
+        int rows = limit == null ? DEFAULT_LIMIT : limit;
+        if (rows < 1 || rows > MAX_LIMIT) {
+            throw new IllegalArgumentException("Limit must be between 1 and " + MAX_LIMIT);
+        }
+        return jdbcTemplate.queryForList(sql, user, user, rows);
+    }
+
+    private static LocalDateTime time(Map<String, Object> row, String column) {
+        return row.get(column) instanceof Timestamp value ? value.toLocalDateTime() : null;
     }
 
     private static String qualified(String owner, String table) {

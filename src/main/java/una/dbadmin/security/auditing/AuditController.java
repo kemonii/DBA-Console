@@ -81,4 +81,25 @@ public class AuditController {
         auditService.stopAuditingTable(owner, table, actions);
         return OperationResult.ok("Table auditing disabled", null);
     }
+
+    @GetMapping("/trail")
+    @Operation(summary = "Newest rows of DBA_AUDIT_TRAIL", description = "Optional username and limit (default 100).")
+    public OperationResult trail(@RequestParam(required = false) String username,
+                                 @RequestParam(required = false) Integer limit) {
+        return OperationResult.ok("Audit trail read", auditService.trail(username, limit));
+    }
+
+    @GetMapping("/trail/sessions")
+    @Operation(summary = "Newest login attempts from DBA_AUDIT_SESSION")
+    public OperationResult sessions(@RequestParam(required = false) String username,
+                                    @RequestParam(required = false) Integer limit) {
+        return OperationResult.ok("Session audit read", auditService.sessions(username, limit));
+    }
+
+    @GetMapping("/trail/objects")
+    @Operation(summary = "Newest audited actions on objects from DBA_AUDIT_OBJECT")
+    public OperationResult objects(@RequestParam(required = false) String username,
+                                   @RequestParam(required = false) Integer limit) {
+        return OperationResult.ok("Object audit read", auditService.objects(username, limit));
+    }
 }
