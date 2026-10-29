@@ -38,10 +38,22 @@ class IndexServiceTest {
         when(command.executeQuery(anyString())).thenReturn(rs);
         when(jdbc.execute(any(ConnectionCallback.class))).thenAnswer(invocation ->
                 ((ConnectionCallback<?>) invocation.getArgument(0)).doInConnection(connection));
-        assertTrue(new IndexService(jdbc).validate("hr", "idx").isEmpty());
+        assertTrue(new IndexService(jdbc).validate("HR", "IDX").isEmpty());
         var order = inOrder(command);
-        order.verify(command).execute("ANALYZE INDEX HR.IDX VALIDATE STRUCTURE");
+        order.verify(command).execute("ANALYZE INDEX \"HR\".\"IDX\" VALIDATE STRUCTURE");
         order.verify(command).executeQuery(contains("FROM index_stats"));
         verify(connection, never()).close();
+    }
+    @Test
+    void maintainsListedIndexesWithTheirExactDictionaryNames() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        IndexService service = new IndexService(jdbc);
+        service.rebuild("HR", "my_idx");
+        service.drop("HR", "IDX$1", true);
+        verify(jdbc).execute("ALTER INDEX \"HR\".\"my_idx\" REBUILD");
+        verify(jdbc).execute("DROP INDEX \"HR\".\"IDX$1\"");
+        assertThrows(IllegalArgumentException.class, () -> service.rebuild("HR", "x\" REBUILD --"));
+        assertThrows(IllegalArgumentException.class, () -> service.rebuild("HR", ""));
+        verifyNoMoreInteractions(jdbc);
     }
 }

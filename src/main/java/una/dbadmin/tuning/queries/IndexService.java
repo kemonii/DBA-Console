@@ -53,7 +53,8 @@ public class IndexService {
             }
         });
     }
+    /** Owner and index come from a DBA_INDEXES row, so they are quoted exactly as stored. */
     private String qualified(String schema, String index) {
-        return OracleIdentifiers.requireValid(schema) + "." + OracleIdentifiers.requireValid(index);
+        return OracleIdentifiers.quoteExisting(schema) + "." + OracleIdentifiers.quoteExisting(index);
     }
 }

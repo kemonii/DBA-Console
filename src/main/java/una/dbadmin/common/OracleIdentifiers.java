@@ -27,4 +27,18 @@ public final class OracleIdentifiers {
         }
         return name.toUpperCase(Locale.ROOT);
     }
+
+    /**
+     * Returns the name as a quoted identifier, keeping its exact case. Use it for names read back from the data
+     * dictionary, which may be lower case or contain characters an unquoted identifier cannot.
+     *
+     * @throws IllegalArgumentException if the name cannot be a quoted Oracle identifier
+     */
+    public static String quoteExisting(String name) {
+        if (name == null || name.isEmpty() || name.length() > 128 || name.indexOf('"') >= 0
+                || name.chars().anyMatch(Character::isISOControl)) {
+            throw new IllegalArgumentException("Invalid Oracle identifier: " + name);
+        }
+        return '"' + name + '"';
+    }
 }
