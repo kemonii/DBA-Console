@@ -1,0 +1,84 @@
+<h2>Statistics and indexes</h2>
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+@if (message()) {
+  <p class="success" role="status">{{ message() }}</p>
+}
+<form (submit)="load($event)">
+  <div class="row">
+    <label>Schema <input [formField]="fields.schema" /></label>
+    <label>Table (optional for gathering) <input [formField]="fields.table" /></label>
+  </div>
+  @if (fields.schema().touched() && fields.schema().invalid()) {
+    <p class="error">Enter a schema.</p>
+  }
+  <div class="actions">
+    <button type="submit" [disabled]="busy()">Load statistics and indexes</button>
+    <button type="button" [disabled]="busy()" (click)="gather()">
+      Gather {{ model().table ? 'table' : 'schema' }} statistics
+    </button>
+  </div>
+</form>
+@if (statistics(); as rows) {
+  <app-tuning-data-table [rows]="rows" [caption]="'Table statistics: ' + shownSchema()" />
+}
+<h3>Create index</h3>
+<form (submit)="create($event)">
+  <div class="row">
+    <label>Schema <input [formField]="indexFields.schema" /></label>
+    <label>Table <input [formField]="indexFields.table" /></label>
+    <label>Index name <input [formField]="indexFields.name" /></label>
+    <label>Columns (comma separated) <input [formField]="indexFields.columns" /></label>
+    <label
+      >Type
+      <select [formField]="indexFields.type">
+        <option value="BTREE">B-tree</option>
+        <option value="BITMAP">Bitmap</option>
+      </select></label
+    >
+  </div>
+  @if (indexFields().touched() && indexFields().invalid()) {
+    <p class="error" role="alert">Complete schema, table, name and columns.</p>
+  }
+  <button type="submit" [disabled]="busy()">Create index</button>
+</form>
+@if (indexes(); as rows) {
+  <h3>Indexes: {{ shownSchema() }}</h3>
+  @if (!rows.length) {
+    <p>No indexes found.</p>
+  }
+  @for (row of rows; track row['OWNER'] + '.' + row['INDEX_NAME']) {
+    <div class="index-row">
+      <span
+        ><strong>{{ row['OWNER'] }}.{{ row['INDEX_NAME'] }}</strong> on {{ row['TABLE_NAME'] }} ({{
+          row['INDEX_TYPE']
+        }}, {{ row['STATUS'] }})</span
+      >
+      <div class="actions">
+        <button type="button" [disabled]="busy()" (click)="rebuild(row)">Rebuild</button>
+        <button type="button" [disabled]="busy()" (click)="validate(row)">
+          Validate structure
+        </button>
+        <button class="danger" type="button" [disabled]="busy()" (click)="requestDrop(row)">
+          Drop
+        </button>
+      </div>
+    </div>
+  }
+}
+@if (pendingDrop(); as target) {
+  <section class="confirmation" aria-label="Confirm index deletion">
+    <p>
+      Drop {{ target.schema }}.{{ target.name }}? Queries may lose the performance benefit of this
+      index.
+    </p>
+    <button class="danger" type="button" [disabled]="busy()" (click)="confirmDrop()">
+      Confirm drop
+    </button>
+    <button type="button" [disabled]="busy()" (click)="pendingDrop.set(null)">Cancel</button>
+  </section>
+}
+@if (validation(); as rows) {
+  <app-tuning-data-table [rows]="rows" caption="Index structure validation" />
+}
