@@ -52,7 +52,7 @@ public class MonitoringService {
                 """);
     }
     public void killBlocker(int sid, int serial, boolean confirm) {
-        if (!confirm || sid <= 0 || serial < 0 || serial > 65535) {
+        if (!confirm || sid <= 0 || serial < 0) {
             throw new IllegalArgumentException("Confirm killing a valid blocking session with confirm=true");
         }
         Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM (" + BLOCKERS + ") WHERE blocker_sid = ? AND blocker_serial = ?", Integer.class, sid, serial);

@@ -24,4 +24,12 @@ class MonitoringServiceTest {
         service.killBlocker(10, 20, true);
         verify(jdbc).execute("ALTER SYSTEM KILL SESSION '10,20' IMMEDIATE");
     }
+    @Test
+    void killsBlockersWithSerialNumbersAbove65535() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        String sql = "SELECT COUNT(*) FROM (" + MonitoringService.BLOCKERS + ") WHERE blocker_sid = ? AND blocker_serial = ?";
+        when(jdbc.queryForObject(sql, Integer.class, 10, 70000)).thenReturn(1);
+        new MonitoringService(jdbc).killBlocker(10, 70000, true);
+        verify(jdbc).execute("ALTER SYSTEM KILL SESSION '10,70000' IMMEDIATE");
+    }
 }
