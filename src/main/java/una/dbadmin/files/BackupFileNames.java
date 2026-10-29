@@ -30,11 +30,11 @@ final class BackupFileNames {
      */
     static String requireValid(String name) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("File name is required");
+            throw new IllegalArgumentException("El nombre del archivo es obligatorio");
         }
         if (!isValid(name)) {
             throw new IllegalArgumentException(
-                    "Invalid file name: only plain names ending in .dmp or .log are allowed");
+                    "Nombre de archivo no válido: solo se permiten nombres simples que terminen en .dmp o .log");
         }
         return name;
     }

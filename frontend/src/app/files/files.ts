@@ -9,10 +9,10 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   selector: 'app-files',
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
   template: `
-    <h1>File Management</h1>
-    <nav class="subnav" aria-label="File Management">
-      <a routerLink="/files/directories" routerLinkActive="active">Directories</a>
-      <a routerLink="/files/browse" routerLinkActive="active">Backup files</a>
+    <h1>Administración de archivos</h1>
+    <nav class="subnav" aria-label="Administración de archivos">
+      <a routerLink="/files/directories" routerLinkActive="active">Directorios</a>
+      <a routerLink="/files/browse" routerLinkActive="active">Archivos de respaldo</a>
     </nav>
     <router-outlet />
   `,

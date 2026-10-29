@@ -1,9 +1,9 @@
-<h2>Backup files</h2>
+<h2>Archivos de respaldo</h2>
 
 <div class="field">
-  <label for="directory">Directory</label>
+  <label for="directory">Directorio</label>
   <select id="directory" (change)="onSelectDirectory($event)">
-    <option value="" [selected]="!directory()">Select a directory</option>
+    <option value="" [selected]="!directory()">Seleccione un directorio</option>
     @for (item of directories(); track item.name) {
       <option [value]="item.name" [selected]="item.name === directory()">{{ item.name }}</option>
     }
@@ -20,25 +20,25 @@
 </section>
 
 @if (!directory()) {
-  <p>Select a directory to see its files.</p>
+  <p>Seleccione un directorio para ver sus archivos.</p>
 } @else if (listError()) {
   <p class="error" role="alert">{{ listError() }}</p>
 } @else if (!filesLoaded()) {
-  <p>Loading...</p>
+  <p>Cargando...</p>
 } @else if (files().length === 0) {
-  <p>This directory has no .dmp or .log files.</p>
+  <p>Este directorio no tiene archivos .dmp ni .log.</p>
 } @else {
   <table>
     <caption class="visually-hidden">
-      Files in
+      Archivos en
       {{ directory() }}
     </caption>
     <thead>
       <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Size</th>
-        <th scope="col">Last modified</th>
-        <th scope="col">Actions</th>
+        <th scope="col">Nombre</th>
+        <th scope="col">Tamaño</th>
+        <th scope="col">Última modificación</th>
+        <th scope="col">Acciones</th>
       </tr>
     </thead>
     <tbody>
@@ -50,7 +50,7 @@
           <td class="actions">
             @if (isLog(file.name)) {
               <button type="button" [attr.data-view]="file.name" (click)="viewLog(file.name)">
-                View
+                Ver
               </button>
             }
             <button
@@ -60,7 +60,7 @@
               [disabled]="busy()"
               (click)="askDelete(file.name)"
             >
-              Delete
+              Eliminar
             </button>
           </td>
         </tr>
@@ -70,25 +70,25 @@
 }
 
 @if (pendingDelete()) {
-  <div class="confirm" role="alertdialog" aria-label="Confirm delete">
+  <div class="confirm" role="alertdialog" aria-label="Confirmar eliminación">
     <p>
-      Delete <strong>{{ pendingDelete() }}</strong> from the server? This cannot be undone.
+      ¿Eliminar <strong>{{ pendingDelete() }}</strong> del servidor? Esta acción no se puede deshacer.
     </p>
     <button type="button" class="danger" data-action="confirm" (click)="confirmDelete()">
-      Delete file
+      Eliminar archivo
     </button>
-    <button type="button" data-action="cancel" (click)="cancelDelete()">Cancel</button>
+    <button type="button" data-action="cancel" (click)="cancelDelete()">Cancelar</button>
   </div>
 }
 
 @if (log(); as content) {
-  <section class="log-panel" aria-label="Log content">
+  <section class="log-panel" aria-label="Contenido del log">
     <div class="log-header">
       <h3>{{ content.name }}</h3>
-      <button type="button" data-action="close" (click)="closeLog()">Close</button>
+      <button type="button" data-action="close" (click)="closeLog()">Cerrar</button>
     </div>
     @if (content.truncated) {
-      <p class="warning">Only the beginning of the file is shown.</p>
+      <p class="warning">Solo se muestra el inicio del archivo.</p>
     }
     <pre class="log">{{ content.content }}</pre>
   </section>
