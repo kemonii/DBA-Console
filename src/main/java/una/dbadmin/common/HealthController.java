@@ -22,6 +22,6 @@ public class HealthController {
     public OperationResult health() {
         // Connection or query failures propagate as DataAccessException to GlobalExceptionHandler.
         jdbcTemplate.queryForObject("SELECT 1 FROM dual", Integer.class);
-        return OperationResult.ok("Database connection is available", null);
+        return OperationResult.ok("La conexión con la base de datos está disponible", null);
     }
 }
