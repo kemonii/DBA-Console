@@ -14,17 +14,17 @@ const CHECK_INTERVAL_MS = 30_000;
       <span class="dot" aria-hidden="true"></span>
       @switch (health.state()) {
         @case ('connected') {
-          Connected
+          Conectado
         }
         @case ('disconnected') {
-          Disconnected
+          Desconectado
         }
         @default {
-          Checking connection
+          Verificando conexión
         }
       }
     </span>
-    <button type="button" (click)="health.check()">Recheck</button>
+    <button type="button" (click)="health.check()">Verificar de nuevo</button>
   `,
   styleUrl: './connection-status.css',
 })

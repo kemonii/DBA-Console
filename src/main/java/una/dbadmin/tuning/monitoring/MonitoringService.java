@@ -53,10 +53,10 @@ public class MonitoringService {
     }
     public void killBlocker(int sid, int serial, boolean confirm) {
         if (!confirm || sid <= 0 || serial < 0) {
-            throw new IllegalArgumentException("Confirm killing a valid blocking session with confirm=true");
+            throw new IllegalArgumentException("Confirme la terminación de una sesión bloqueadora válida con confirm=true");
         }
         Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM (" + BLOCKERS + ") WHERE blocker_sid = ? AND blocker_serial = ?", Integer.class, sid, serial);
-        if (count == null || count == 0) throw new IllegalArgumentException("Session is no longer blocking another session");
+        if (count == null || count == 0) throw new IllegalArgumentException("La sesión ya no está bloqueando otra sesión");
         jdbc.execute("ALTER SYSTEM KILL SESSION '" + sid + "," + serial + "' IMMEDIATE");
     }
 }

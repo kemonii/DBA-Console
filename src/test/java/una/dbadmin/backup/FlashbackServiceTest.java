@@ -41,7 +41,7 @@ class FlashbackServiceTest {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> service.restoreTable(new FlashbackTableRequest("hr", "employees")));
 
-        assertEquals("Table HR.EMPLOYEES is not in the recycle bin", error.getMessage());
+        assertEquals("La tabla HR.EMPLOYEES no está en la papelera de reciclaje", error.getMessage());
         verify(jdbc, never()).execute(anyString());
     }
 

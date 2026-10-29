@@ -20,42 +20,42 @@ public class MonitoringController {
     }
     @GetMapping("/instance")
     public OperationResult instance() {
-        return OperationResult.ok("Instance status", service.instance());
+        return OperationResult.ok("Estado de la instancia", service.instance());
     }
 
     @GetMapping("/parameters")
     public OperationResult parameters() {
-        return OperationResult.ok("Instance parameters", service.parameters());
+        return OperationResult.ok("Parámetros de la instancia", service.parameters());
     }
 
     @GetMapping("/sessions")
     public OperationResult sessions() {
-        return OperationResult.ok("Current sessions", service.sessions());
+        return OperationResult.ok("Sesiones actuales", service.sessions());
     }
 
     @GetMapping("/sessions/programs")
     public OperationResult programs() {
-        return OperationResult.ok("Sessions per program", service.sessionsByProgram());
+        return OperationResult.ok("Sesiones por programa", service.sessionsByProgram());
     }
 
     @GetMapping("/sessions/users")
     public OperationResult users() {
-        return OperationResult.ok("Sessions per user", service.sessionsByUser());
+        return OperationResult.ok("Sesiones por usuario", service.sessionsByUser());
     }
 
     @GetMapping("/locks")
     public OperationResult locks() {
-        return OperationResult.ok("Blocking locks", service.blockers());
+        return OperationResult.ok("Bloqueos", service.blockers());
     }
 
     @GetMapping("/locks/objects")
     public OperationResult objects() {
-        return OperationResult.ok("Locked objects", service.lockedObjects());
+        return OperationResult.ok("Objetos bloqueados", service.lockedObjects());
     }
 
     @DeleteMapping("/sessions/{sid}/{serial}")
     public OperationResult kill(@PathVariable int sid, @PathVariable int serial, @RequestParam(defaultValue = "false") boolean confirm) {
         service.killBlocker(sid, serial, confirm);
-        return OperationResult.ok("Blocking session marked for termination", null);
+        return OperationResult.ok("Sesión bloqueadora marcada para terminar", null);
     }
 }

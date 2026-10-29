@@ -19,6 +19,6 @@ public class BackupLogController {
 
     @GetMapping
     public OperationResult read(@RequestParam String directory, @RequestParam String fileName) {
-        return OperationResult.ok("Contents of " + fileName, service.read(directory, fileName));
+        return OperationResult.ok("Contenido de " + fileName, service.read(directory, fileName));
     }
 }

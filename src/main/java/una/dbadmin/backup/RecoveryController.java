@@ -25,9 +25,9 @@ public class RecoveryController {
     public ResponseEntity<OperationResult> recover(@Valid @RequestBody RecoveryRequest request) {
         RecoveryResult result = service.recover(request);
         if (result.success()) {
-            return ResponseEntity.ok(OperationResult.ok("Recovery completed", result));
+            return ResponseEntity.ok(OperationResult.ok("Recuperación completada", result));
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new OperationResult(false, "Recovery failed with exit code " + result.exitCode(), result));
+                .body(new OperationResult(false, "La recuperación falló con el código de salida " + result.exitCode(), result));
     }
 }

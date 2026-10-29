@@ -7,52 +7,53 @@
   }
 </section>
 
-<h2>Audit trail parameter</h2>
+<h2>Parámetro audit_trail</h2>
 @if (loadError()) {
   <p class="error" role="alert">{{ loadError() }}</p>
 } @else if (parameter(); as current) {
   @if (current.enabled) {
     <p class="parameter success">
       <code>audit_trail = {{ current.value }}</code
-      >: audit records are written to the database (SYS.AUD$).
+      >: los registros de auditoría se escriben en la base de datos (SYS.AUD$).
     </p>
   } @else {
     <p class="parameter error">
       <code>audit_trail = {{ current.value }}</code
-      >: audit records are not written to the database, so the trail below stays empty.
+      >: los registros de auditoría no se escriben en la base de datos, así que el registro de abajo
+      queda vacío.
     </p>
     <p class="hint">
-      To enable it, run <code>ALTER SYSTEM SET audit_trail = DB SCOPE = SPFILE;</code> as SYSDBA and
-      restart the database.
+      Para activarlo, ejecute <code>ALTER SYSTEM SET audit_trail = DB SCOPE = SPFILE;</code> como
+      SYSDBA y reinicie la base de datos.
     </p>
   }
 } @else {
-  <p>Loading...</p>
+  <p>Cargando...</p>
 }
 
-<h2>Session auditing</h2>
-<p class="hint">Records every login attempt (AUDIT SESSION).</p>
+<h2>Auditoría de sesiones</h2>
+<p class="hint">Registra cada intento de inicio de sesión (AUDIT SESSION).</p>
 @if (options(); as current) {
   @if (current.statementOptions.length === 0) {
-    <p class="statement-options">No statement auditing is enabled.</p>
+    <p class="statement-options">No hay auditoría de sentencias activada.</p>
   } @else {
     <table class="statement-options">
       <caption class="visually-hidden">
-        Statement audit options
+        Opciones de auditoría de sentencias
       </caption>
       <thead>
         <tr>
-          <th scope="col">Option</th>
-          <th scope="col">User</th>
-          <th scope="col">Successful</th>
-          <th scope="col">Not successful</th>
+          <th scope="col">Opción</th>
+          <th scope="col">Usuario</th>
+          <th scope="col">Exitosos</th>
+          <th scope="col">Fallidos</th>
         </tr>
       </thead>
       <tbody>
         @for (option of current.statementOptions; track option.option + option.userName) {
           <tr>
             <td>{{ option.option }}</td>
-            <td>{{ option.userName ?? 'Every user' }}</td>
+            <td>{{ option.userName ?? 'Todos los usuarios' }}</td>
             <td>{{ option.success }}</td>
             <td>{{ option.failure }}</td>
           </tr>
@@ -63,40 +64,40 @@
 }
 <div class="row">
   <div class="field">
-    <label for="session-whenever">Attempts</label>
+    <label for="session-whenever">Intentos</label>
     <select id="session-whenever" [value]="sessionWhenever()" (change)="setSessionWhenever($event)">
-      <option value="ALWAYS">Successful and failed</option>
-      <option value="SUCCESSFUL">Successful only (WHENEVER SUCCESSFUL)</option>
-      <option value="NOT_SUCCESSFUL">Failed only (WHENEVER NOT SUCCESSFUL)</option>
+      <option value="ALWAYS">Exitosos y fallidos</option>
+      <option value="SUCCESSFUL">Solo exitosos (WHENEVER SUCCESSFUL)</option>
+      <option value="NOT_SUCCESSFUL">Solo fallidos (WHENEVER NOT SUCCESSFUL)</option>
     </select>
   </div>
 </div>
 <div class="actions">
   <button id="session-enable" type="button" [disabled]="busy()" (click)="auditSessions(true)">
-    Enable
+    Activar
   </button>
   <button id="session-disable" type="button" [disabled]="busy()" (click)="auditSessions(false)">
-    Disable
+    Desactivar
   </button>
 </div>
 
-<h2>Table auditing</h2>
+<h2>Auditoría de tablas</h2>
 @if (options(); as current) {
   @if (current.objectOptions.length === 0) {
-    <p class="object-options">No table is audited.</p>
+    <p class="object-options">No se audita ninguna tabla.</p>
   } @else {
     <table class="object-options">
       <caption class="visually-hidden">
-        Audited tables
+        Tablas auditadas
       </caption>
       <thead>
         <tr>
-          <th scope="col">Table</th>
+          <th scope="col">Tabla</th>
           <th scope="col">INSERT</th>
           <th scope="col">UPDATE</th>
           <th scope="col">DELETE</th>
           <th scope="col">SELECT</th>
-          <th scope="col">Actions</th>
+          <th scope="col">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -115,7 +116,7 @@
                 [disabled]="busy()"
                 (click)="stopAuditingTable(option)"
               >
-                Stop
+                Detener
               </button>
             </td>
           </tr>
@@ -123,21 +124,21 @@
       </tbody>
     </table>
     <p class="hint">
-      A/A: audited by access when it succeeds and when it fails; S: by session; -: not audited.
+      A/A: auditado por acceso cuando tiene éxito y cuando falla; S: por sesión; -: no auditado.
     </p>
   }
 }
 <form (submit)="onAuditTable($event)" novalidate>
   <div class="row">
     <div class="field">
-      <label for="table-owner">Owner (schema)</label>
+      <label for="table-owner">Propietario (esquema)</label>
       <input id="table-owner" type="text" [formField]="tableForm.owner" />
       @if (tableForm.owner().touched() && tableForm.owner().errors().length) {
         <p class="error" role="alert">{{ tableForm.owner().errors()[0].message }}</p>
       }
     </div>
     <div class="field">
-      <label for="table-name">Table</label>
+      <label for="table-name">Tabla</label>
       <input id="table-name" type="text" [formField]="tableForm.table" />
       @if (tableForm.table().touched() && tableForm.table().errors().length) {
         <p class="error" role="alert">{{ tableForm.table().errors()[0].message }}</p>
@@ -145,7 +146,7 @@
     </div>
   </div>
   <fieldset>
-    <legend>Actions</legend>
+    <legend>Acciones</legend>
     @for (action of tableActions; track action) {
       <label class="inline">
         <input
@@ -160,35 +161,35 @@
   </fieldset>
   <label class="inline" for="table-by-access">
     <input id="table-by-access" type="checkbox" [formField]="tableForm.byAccess" />
-    BY ACCESS (one record per statement; otherwise one per session)
+    BY ACCESS (un registro por sentencia; si no, uno por sesión)
   </label>
   <div>
-    <button id="table-submit" type="submit" [disabled]="busy()">Audit table</button>
+    <button id="table-submit" type="submit" [disabled]="busy()">Auditar tabla</button>
   </div>
 </form>
 
-<h2>Audit trail</h2>
+<h2>Registro de auditoría</h2>
 <form (submit)="onReadTrail($event)" novalidate>
   <div class="row">
     <div class="field">
-      <label for="trail-view">Show</label>
+      <label for="trail-view">Mostrar</label>
       <select id="trail-view" [formField]="trailForm.view">
-        <option value="sessions">Login attempts (DBA_AUDIT_SESSION)</option>
-        <option value="objects">Actions on tables (DBA_AUDIT_OBJECT)</option>
-        <option value="all">Every audited action (DBA_AUDIT_TRAIL)</option>
+        <option value="sessions">Intentos de inicio de sesión (DBA_AUDIT_SESSION)</option>
+        <option value="objects">Acciones sobre tablas (DBA_AUDIT_OBJECT)</option>
+        <option value="all">Todas las acciones auditadas (DBA_AUDIT_TRAIL)</option>
       </select>
     </div>
     <div class="field">
-      <label for="trail-user">User</label>
+      <label for="trail-user">Usuario</label>
       <input
         id="trail-user"
         type="text"
-        placeholder="Every user"
+        placeholder="Todos los usuarios"
         [formField]="trailForm.username"
       />
     </div>
     <div class="field">
-      <label for="trail-limit">Rows</label>
+      <label for="trail-limit">Filas</label>
       <input
         id="trail-limit"
         type="text"
@@ -201,7 +202,7 @@
       }
     </div>
   </div>
-  <button id="trail-submit" type="submit">Read trail</button>
+  <button id="trail-submit" type="submit">Leer registro</button>
 </form>
 
 @if (trailError()) {
@@ -211,20 +212,20 @@
 @switch (shownView()) {
   @case ('sessions') {
     @if (sessionRows().length === 0) {
-      <p class="trail-empty">No login attempts recorded.</p>
+      <p class="trail-empty">No hay intentos de inicio de sesión registrados.</p>
     } @else {
       <table class="trail">
         <caption class="visually-hidden">
-          Login attempts
+          Intentos de inicio de sesión
         </caption>
         <thead>
           <tr>
-            <th scope="col">Login</th>
-            <th scope="col">Logoff</th>
-            <th scope="col">Oracle user</th>
-            <th scope="col">OS user</th>
+            <th scope="col">Inicio de sesión</th>
+            <th scope="col">Cierre de sesión</th>
+            <th scope="col">Usuario Oracle</th>
+            <th scope="col">Usuario del SO</th>
             <th scope="col">Terminal</th>
-            <th scope="col">Outcome</th>
+            <th scope="col">Resultado</th>
           </tr>
         </thead>
         <tbody>
@@ -244,19 +245,19 @@
   }
   @case ('objects') {
     @if (objectRows().length === 0) {
-      <p class="trail-empty">No actions on tables recorded.</p>
+      <p class="trail-empty">No hay acciones sobre tablas registradas.</p>
     } @else {
       <table class="trail">
         <caption class="visually-hidden">
-          Actions on tables
+          Acciones sobre tablas
         </caption>
         <thead>
           <tr>
-            <th scope="col">Time</th>
-            <th scope="col">Oracle user</th>
-            <th scope="col">Object</th>
-            <th scope="col">Action</th>
-            <th scope="col">Outcome</th>
+            <th scope="col">Fecha y hora</th>
+            <th scope="col">Usuario Oracle</th>
+            <th scope="col">Objeto</th>
+            <th scope="col">Acción</th>
+            <th scope="col">Resultado</th>
           </tr>
         </thead>
         <tbody>
@@ -275,20 +276,20 @@
   }
   @case ('all') {
     @if (trailRows().length === 0) {
-      <p class="trail-empty">No audited actions recorded.</p>
+      <p class="trail-empty">No hay acciones auditadas registradas.</p>
     } @else {
       <table class="trail">
         <caption class="visually-hidden">
-          Audited actions
+          Acciones auditadas
         </caption>
         <thead>
           <tr>
-            <th scope="col">Time</th>
-            <th scope="col">User</th>
-            <th scope="col">Action</th>
-            <th scope="col">Object</th>
-            <th scope="col">Privilege used</th>
-            <th scope="col">Return code</th>
+            <th scope="col">Fecha y hora</th>
+            <th scope="col">Usuario</th>
+            <th scope="col">Acción</th>
+            <th scope="col">Objeto</th>
+            <th scope="col">Privilegio usado</th>
+            <th scope="col">Código de retorno</th>
           </tr>
         </thead>
         <tbody>

@@ -66,7 +66,7 @@ class GrantControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"privilege\":\"CREATE SESSION\",\"grantee\":\"prueba\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Privilege granted"));
+                .andExpect(jsonPath("$.message").value("Privilegio otorgado"));
 
         verify(jdbc).execute("GRANT CREATE SESSION TO PRUEBA");
     }

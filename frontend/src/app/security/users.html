@@ -1,4 +1,4 @@
-<h2>Users</h2>
+<h2>Usuarios</h2>
 
 <section aria-live="polite">
   @if (successMessage()) {
@@ -12,22 +12,22 @@
 @if (listError()) {
   <p class="error" role="alert">{{ listError() }}</p>
 } @else if (!loaded()) {
-  <p>Loading...</p>
+  <p>Cargando...</p>
 } @else if (users().length === 0) {
-  <p>There are no users created by administrators yet. Create one below.</p>
+  <p>Todavía no hay usuarios creados por administradores. Cree uno abajo.</p>
 } @else {
   <table>
     <caption class="visually-hidden">
-      Users
+      Usuarios
     </caption>
     <thead>
       <tr>
-        <th scope="col">User</th>
-        <th scope="col">Status</th>
-        <th scope="col">Default tablespace</th>
-        <th scope="col">Temporary tablespace</th>
-        <th scope="col">Profile</th>
-        <th scope="col">Actions</th>
+        <th scope="col">Usuario</th>
+        <th scope="col">Estado</th>
+        <th scope="col">Tablespace por defecto</th>
+        <th scope="col">Tablespace temporal</th>
+        <th scope="col">Perfil</th>
+        <th scope="col">Acciones</th>
       </tr>
     </thead>
     <tbody>
@@ -40,7 +40,7 @@
           <td>{{ user.profile }}</td>
           <td class="actions">
             <a [routerLink]="['/security/privileges']" [queryParams]="{ grantee: user.username }">
-              Privileges
+              Privilegios
             </a>
             <button
               type="button"
@@ -49,7 +49,7 @@
               [disabled]="busy()"
               (click)="toggleLock(user)"
             >
-              {{ isLocked(user) ? 'Unlock' : 'Lock' }}
+              {{ isLocked(user) ? 'Desbloquear' : 'Bloquear' }}
             </button>
             <button
               type="button"
@@ -58,21 +58,21 @@
               [disabled]="busy()"
               (click)="askDrop(user.username)"
             >
-              Drop
+              Eliminar
             </button>
           </td>
         </tr>
       }
     </tbody>
   </table>
-  <p class="hint">Users created by Oracle, such as SYS and SYSTEM, are not listed.</p>
+  <p class="hint">Los usuarios creados por Oracle, como SYS y SYSTEM, no se muestran.</p>
 }
 
 @if (pendingDrop()) {
-  <div class="confirm" role="alertdialog" aria-label="Confirm drop">
+  <div class="confirm" role="alertdialog" aria-label="Confirmar eliminación">
     <p>
-      Drop user <strong>{{ pendingDrop() }}</strong
-      >? This cannot be undone.
+      ¿Eliminar el usuario <strong>{{ pendingDrop() }}</strong
+      >? Esta acción no se puede deshacer.
     </p>
     <label class="inline" for="drop-cascade">
       <input
@@ -81,20 +81,20 @@
         [checked]="dropCascade()"
         (change)="setCascade($event)"
       />
-      Also drop the tables and other objects it owns (CASCADE)
+      Eliminar también las tablas y demás objetos que le pertenecen (CASCADE)
     </label>
     <button type="button" class="danger" data-action="confirm" (click)="confirmDrop()">
-      Drop user
+      Eliminar usuario
     </button>
-    <button type="button" data-action="cancel" (click)="cancelDrop()">Cancel</button>
+    <button type="button" data-action="cancel" (click)="cancelDrop()">Cancelar</button>
   </div>
 }
 
-<h2>Create a user</h2>
+<h2>Crear un usuario</h2>
 <form (submit)="onCreate($event)" novalidate>
   <div class="row">
     <div class="field">
-      <label for="create-username">User name</label>
+      <label for="create-username">Nombre de usuario</label>
       <input
         id="create-username"
         type="text"
@@ -106,7 +106,7 @@
       }
     </div>
     <div class="field">
-      <label for="create-password">Password</label>
+      <label for="create-password">Contraseña</label>
       <input
         id="create-password"
         type="password"
@@ -120,9 +120,9 @@
   </div>
   <div class="row">
     <div class="field">
-      <label for="create-default">Default tablespace</label>
+      <label for="create-default">Tablespace por defecto</label>
       <select id="create-default" [formField]="createForm.defaultTablespace">
-        <option value="">Database default</option>
+        <option value="">El de la base de datos</option>
         @for (tablespace of tablespaces(); track tablespace) {
           <option [value]="tablespace">{{ tablespace }}</option>
         }
@@ -134,22 +134,22 @@
       }
     </div>
     <div class="field">
-      <label for="create-temporary">Temporary tablespace</label>
+      <label for="create-temporary">Tablespace temporal</label>
       <input
         id="create-temporary"
         type="text"
-        placeholder="Database default (TEMP)"
+        placeholder="El de la base de datos (TEMP)"
         [formField]="createForm.temporaryTablespace"
       />
     </div>
   </div>
   <fieldset>
-    <legend>Quota on the default tablespace</legend>
+    <legend>Cuota en el tablespace por defecto</legend>
     <label class="inline" for="create-quota-mode">
       <select id="create-quota-mode" [formField]="createForm.quotaMode">
-        <option value="none">No quota</option>
-        <option value="limited">Limited</option>
-        <option value="unlimited">Unlimited</option>
+        <option value="none">Sin cuota</option>
+        <option value="limited">Limitada</option>
+        <option value="unlimited">Ilimitada</option>
       </select>
     </label>
     @if (createModel().quotaMode === 'limited') {
@@ -168,9 +168,9 @@
       }
     }
   </fieldset>
-  <button id="create-submit" type="submit" [disabled]="busy()">Create user</button>
+  <button id="create-submit" type="submit" [disabled]="busy()">Crear usuario</button>
   <p class="hint">
-    A new user cannot log in until it has the CREATE SESSION privilege; grant it in
-    <a routerLink="/security/privileges">Roles &amp; privileges</a>.
+    Un usuario nuevo no puede iniciar sesión hasta tener el privilegio CREATE SESSION; otórguelo en
+    <a routerLink="/security/privileges">Roles y privilegios</a>.
   </p>
 </form>

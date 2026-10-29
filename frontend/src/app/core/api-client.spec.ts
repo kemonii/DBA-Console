@@ -86,7 +86,7 @@ describe('ApiClient', () => {
 
     http.expectOne('/api/health').flush('Bad gateway', { status: 502, statusText: 'Bad Gateway' });
 
-    expect((error as ApiError).message).toBe('Request failed with status 502');
+    expect((error as ApiError).message).toBe('La solicitud falló con el estado 502');
     expect((error as ApiError).status).toBe(502);
   });
 
@@ -98,6 +98,6 @@ describe('ApiClient', () => {
 
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).status).toBe(0);
-    expect((error as ApiError).message).toContain('Cannot reach the server');
+    expect((error as ApiError).message).toContain('No se puede conectar con el servidor');
   });
 });

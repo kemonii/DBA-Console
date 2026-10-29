@@ -74,7 +74,7 @@ class UserControllerTest {
                         .content("""
                                 {"username":"prueba","password":"a\\"b"}"""))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Password cannot contain double quotes or control characters"));
+                .andExpect(jsonPath("$.message").value("La contraseña no puede contener comillas dobles ni caracteres de control"));
 
         verify(jdbc, never()).execute(anyString());
     }
@@ -85,10 +85,10 @@ class UserControllerTest {
 
         mvc.perform(post("/api/security/users/PRUEBA/lock"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("User locked"));
+                .andExpect(jsonPath("$.message").value("Usuario bloqueado"));
         mvc.perform(post("/api/security/users/PRUEBA/unlock"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("User unlocked"));
+                .andExpect(jsonPath("$.message").value("Usuario desbloqueado"));
 
         verify(jdbc).execute("ALTER USER PRUEBA ACCOUNT LOCK");
         verify(jdbc).execute("ALTER USER PRUEBA ACCOUNT UNLOCK");
@@ -102,7 +102,7 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"profile\":\"APP_USER\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Profile assigned"));
+                .andExpect(jsonPath("$.message").value("Perfil asignado"));
 
         verify(jdbc).execute("ALTER USER PRUEBA PROFILE APP_USER");
     }

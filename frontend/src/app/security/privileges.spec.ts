@@ -137,7 +137,7 @@ describe('Privileges', () => {
     await click('#show-submit');
     await flushPrivileges();
 
-    expect(root.textContent).toContain('System privileges of PRUEBA');
+    expect(root.textContent).toContain('Privilegios de sistema de PRUEBA');
   });
 
   it('grants a system privilege and reloads the privileges', async () => {
@@ -208,7 +208,7 @@ describe('Privileges', () => {
     await click('#grant-submit');
 
     http.expectNone('/api/security/grants/object');
-    expect(q('.error').textContent).toContain('Select at least one object privilege');
+    expect(q('.error').textContent).toContain('Seleccione al menos un privilegio sobre el objeto');
   });
 
   it('revokes each kind of grant from its row', async () => {

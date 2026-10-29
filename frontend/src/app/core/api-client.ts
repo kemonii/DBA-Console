@@ -37,17 +37,17 @@ export class ApiClient {
 
 function toApiError(error: unknown): Observable<never> {
   if (!(error instanceof HttpErrorResponse)) {
-    return throwError(() => new ApiError('Unexpected error', 0));
+    return throwError(() => new ApiError('Error inesperado', 0));
   }
   if (error.status === 0) {
     return throwError(
-      () => new ApiError('Cannot reach the server. Check that the backend is running.', 0),
+      () => new ApiError('No se puede conectar con el servidor. Verifique que el backend esté en ejecución.', 0),
     );
   }
   if (isOperationResult(error.error)) {
     return throwError(() => new ApiError(error.error.message, error.status, error.error.data));
   }
-  return throwError(() => new ApiError(`Request failed with status ${error.status}`, error.status));
+  return throwError(() => new ApiError(`La solicitud falló con el estado ${error.status}`, error.status));
 }
 
 function isOperationResult(body: unknown): body is OperationResult {

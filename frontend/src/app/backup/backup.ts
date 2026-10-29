@@ -9,10 +9,10 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   selector: 'app-backup',
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
   template: `
-    <h1>Backup &amp; Recovery</h1>
-    <nav class="tabs" aria-label="Backup and recovery screens">
-      <a routerLink="." routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Backup</a>
-      <a routerLink="recovery" routerLinkActive="active">Recovery</a>
+    <h1>Respaldos y recuperación</h1>
+    <nav class="tabs" aria-label="Pantallas de respaldos y recuperación">
+      <a routerLink="." routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Respaldo</a>
+      <a routerLink="recovery" routerLinkActive="active">Recuperación</a>
       <a routerLink="flashback" routerLinkActive="active">Flashback</a>
     </nav>
     <router-outlet />

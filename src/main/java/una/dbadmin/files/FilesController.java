@@ -38,47 +38,47 @@ public class FilesController {
     @GetMapping("/directories")
     @Operation(summary = "List directory objects")
     public OperationResult listDirectories() {
-        return OperationResult.ok("Directory objects listed", filesService.listDirectories());
+        return OperationResult.ok("Objetos directorio listados", filesService.listDirectories());
     }
 
     @PostMapping("/directories")
     @Operation(summary = "Create or replace a directory object")
     public OperationResult createDirectory(@RequestBody CreateDirectoryRequest request) {
         String name = filesService.createDirectory(request.name(), request.path());
-        return OperationResult.ok("Directory " + name + " created", name);
+        return OperationResult.ok("Directorio " + name + " creado", name);
     }
 
     @DeleteMapping("/directories/{name}")
     @Operation(summary = "Drop a directory object")
     public OperationResult dropDirectory(@PathVariable String name) {
         filesService.dropDirectory(name);
-        return OperationResult.ok("Directory dropped", null);
+        return OperationResult.ok("Directorio eliminado", null);
     }
 
     @PostMapping("/directories/{name}/grants")
     @Operation(summary = "Grant READ and WRITE on a directory object to a user")
     public OperationResult grantAccess(@PathVariable String name, @RequestBody GrantRequest request) {
         filesService.grantAccess(name, request.user());
-        return OperationResult.ok("READ and WRITE granted", null);
+        return OperationResult.ok("READ y WRITE otorgados", null);
     }
 
     @DeleteMapping("/directories/{name}/grants/{user}")
     @Operation(summary = "Revoke READ and WRITE on a directory object from a user")
     public OperationResult revokeAccess(@PathVariable String name, @PathVariable String user) {
         filesService.revokeAccess(name, user);
-        return OperationResult.ok("READ and WRITE revoked", null);
+        return OperationResult.ok("READ y WRITE revocados", null);
     }
 
     @GetMapping("/directories/{name}/files")
     @Operation(summary = "List the .dmp and .log files of a directory object")
     public OperationResult listFiles(@PathVariable String name) {
-        return OperationResult.ok("Files listed", filesService.listFiles(name));
+        return OperationResult.ok("Archivos listados", filesService.listFiles(name));
     }
 
     @GetMapping("/directories/{name}/files/{file}/content")
     @Operation(summary = "View the content of a .log file")
     public OperationResult readLog(@PathVariable String name, @PathVariable String file) {
-        return OperationResult.ok("Log read", filesService.readLog(name, file));
+        return OperationResult.ok("Log leído", filesService.readLog(name, file));
     }
 
     @DeleteMapping("/directories/{name}/files/{file}")
@@ -88,6 +88,6 @@ public class FilesController {
             @PathVariable String file,
             @RequestParam(defaultValue = "false") boolean confirm) {
         filesService.deleteFile(name, file, confirm);
-        return OperationResult.ok("File deleted", null);
+        return OperationResult.ok("Archivo eliminado", null);
     }
 }

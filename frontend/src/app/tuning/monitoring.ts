@@ -13,13 +13,13 @@ import { TuningDataTable } from './data-table';
 export class Monitoring {
   private readonly api = inject(TuningApi);
   protected readonly views: { path: MonitorView; label: string }[] = [
-    { path: 'instance', label: 'Instance status' },
-    { path: 'parameters', label: 'Main parameters' },
-    { path: 'sessions', label: 'Sessions and open cursors' },
-    { path: 'sessions/programs', label: 'Sessions per program' },
-    { path: 'sessions/users', label: 'Sessions per user' },
-    { path: 'locks', label: 'Blocking locks' },
-    { path: 'locks/objects', label: 'Locked objects' },
+    { path: 'instance', label: 'Estado de la instancia' },
+    { path: 'parameters', label: 'Parámetros principales' },
+    { path: 'sessions', label: 'Sesiones y cursores abiertos' },
+    { path: 'sessions/programs', label: 'Sesiones por programa' },
+    { path: 'sessions/users', label: 'Sesiones por usuario' },
+    { path: 'locks', label: 'Bloqueos' },
+    { path: 'locks/objects', label: 'Objetos bloqueados' },
   ];
   protected readonly selected = signal<MonitorView>('instance');
   protected readonly shown = signal('');
@@ -47,7 +47,7 @@ export class Monitoring {
       this.shown.set(this.views.find((v) => v.path === view)?.label ?? view);
       this.rows.set(result.data ?? []);
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Unexpected error');
+      this.error.set(error instanceof Error ? error.message : 'Error inesperado');
     } finally {
       this.busy.set(false);
     }
@@ -69,7 +69,7 @@ export class Monitoring {
       this.busy.set(false);
       await this.load();
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Unexpected error');
+      this.error.set(error instanceof Error ? error.message : 'Error inesperado');
     } finally {
       this.busy.set(false);
     }

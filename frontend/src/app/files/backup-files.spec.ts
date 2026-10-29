@@ -64,7 +64,7 @@ describe('BackupFiles', () => {
     await open('/files/browse');
     await flushDirectories();
 
-    expect(root.textContent).toContain('Select a directory to see its files');
+    expect(root.textContent).toContain('Seleccione un directorio para ver sus archivos');
     expect(root.querySelector('table')).toBeNull();
   });
 
@@ -85,7 +85,7 @@ describe('BackupFiles', () => {
     await flushDirectories();
     await flushFiles([]);
 
-    expect(root.textContent).toContain('This directory has no .dmp or .log files');
+    expect(root.textContent).toContain('Este directorio no tiene archivos .dmp ni .log');
   });
 
   it('shows the backend message when listing files fails', async () => {
@@ -145,7 +145,7 @@ describe('BackupFiles', () => {
     await settle();
 
     expect(q('pre.log').textContent).toContain('Export: Release 21.0');
-    expect(root.textContent).toContain('Only the beginning of the file is shown');
+    expect(root.textContent).toContain('Solo se muestra el inicio del archivo');
   });
 
   it('asks for confirmation before deleting a file', async () => {

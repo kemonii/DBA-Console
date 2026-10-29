@@ -1,30 +1,32 @@
-<h2>Execution plan</h2>
-<p>Enter one SQL statement. EXPLAIN PLAN generates estimates without executing it.</p>
+<h2>Plan de ejecución</h2>
+<p>Ingrese una sentencia SQL. EXPLAIN PLAN genera estimaciones sin ejecutarla.</p>
 <form (submit)="explain($event)">
-  <label for="statement">SQL statement</label>
+  <label for="statement">Sentencia SQL</label>
   <textarea id="statement" rows="8" [formField]="fields.statement" spellcheck="false"></textarea>
   @if (fields.statement().touched() && fields.statement().invalid()) {
-    <p class="error" role="alert">Enter a SQL statement.</p>
+    <p class="error" role="alert">Ingrese una sentencia SQL.</p>
   }
-  <button type="submit" [disabled]="busy()">{{ busy() ? 'Explaining...' : 'Explain plan' }}</button>
+  <button type="submit" [disabled]="busy()">{{ busy() ? 'Generando...' : 'Generar plan' }}</button>
 </form>
 @if (error()) {
   <p class="error" role="alert">{{ error() }}</p>
 }
 @if (rows(); as steps) {
-  <p role="status">{{ steps.length }} operations. Highlighted rows indicate TABLE ACCESS FULL.</p>
-  <div class="table-scroll" tabindex="0" aria-label="Execution plan">
+  <p role="status">
+    {{ steps.length }} operaciones. Las filas resaltadas indican TABLE ACCESS FULL.
+  </p>
+  <div class="table-scroll" tabindex="0" aria-label="Plan de ejecución">
     <table>
       <caption>
-        Estimated execution plan
+        Plan de ejecución estimado
       </caption>
       <thead>
         <tr>
           <th scope="col">ID</th>
-          <th scope="col">Operation</th>
-          <th scope="col">Object</th>
-          <th scope="col">Cost</th>
-          <th scope="col">Rows</th>
+          <th scope="col">Operación</th>
+          <th scope="col">Objeto</th>
+          <th scope="col">Costo</th>
+          <th scope="col">Filas</th>
         </tr>
       </thead>
       <tbody>
@@ -34,7 +36,7 @@
             <td [style.padding-left.rem]="0.75 + step.depth * 1.25">
               {{ step.operation }} {{ step.options }}
               @if (step.fullTableScan) {
-                <strong>(full scan)</strong>
+                <strong>(recorrido completo)</strong>
               }
             </td>
             <td>{{ step.owner ? step.owner + '.' : '' }}{{ step.objectName }}</td>

@@ -71,7 +71,7 @@ public class ProfileService {
     public void drop(String name) {
         String profile = OracleIdentifiers.requireValid(name);
         if (DEFAULT.equals(profile)) {
-            throw new IllegalArgumentException("The DEFAULT profile cannot be dropped");
+            throw new IllegalArgumentException("El perfil DEFAULT no se puede eliminar");
         }
         jdbcTemplate.execute("DROP PROFILE " + profile + " CASCADE");
     }
@@ -79,13 +79,13 @@ public class ProfileService {
     /** Builds {@code <resource> <value> ...} in the order of {@link #RESOURCES}, after validating every entry. */
     private static String limitClause(Map<String, String> limits) {
         if (limits == null || limits.isEmpty()) {
-            throw new IllegalArgumentException("Set at least one limit");
+            throw new IllegalArgumentException("Establezca al menos un límite");
         }
         Map<String, String> normalized = new LinkedHashMap<>();
         limits.forEach((resource, value) -> {
             String key = resource == null ? "" : resource.trim().toUpperCase(Locale.ROOT);
             if (!RESOURCES.contains(key)) {
-                throw new IllegalArgumentException("Unknown profile limit: " + resource);
+                throw new IllegalArgumentException("Límite de perfil desconocido: " + resource);
             }
             normalized.put(key, requireLimitValue(key, value));
         });
@@ -100,7 +100,7 @@ public class ProfileService {
         if (limit.equals("UNLIMITED") || limit.equals(DEFAULT) || WHOLE_NUMBER.matcher(limit).matches()) {
             return limit;
         }
-        throw new IllegalArgumentException(resource + " must be a whole number, UNLIMITED or DEFAULT");
+        throw new IllegalArgumentException(resource + " debe ser un número entero, UNLIMITED o DEFAULT");
     }
 
     public List<DbProfile> list() {

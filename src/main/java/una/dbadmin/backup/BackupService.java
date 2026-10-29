@@ -50,7 +50,7 @@ public class BackupService {
             args.add("PARFILE=" + parfile);
             return runner.run(args);
         } catch (IOException e) {
-            throw new UncheckedIOException("Could not write the Data Pump parameter file", e);
+            throw new UncheckedIOException("No se pudo escribir el archivo de parámetros de Data Pump", e);
         } finally {
             deleteQuietly(parfile);
         }

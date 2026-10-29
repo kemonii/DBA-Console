@@ -37,7 +37,7 @@ public class FlashbackService {
                 "SELECT COUNT(*) FROM dba_recyclebin WHERE owner = ? AND original_name = ? AND type = 'TABLE'",
                 Integer.class, schema, table);
         if (inRecycleBin == null || inRecycleBin == 0) {
-            throw new IllegalArgumentException("Table " + schema + "." + table + " is not in the recycle bin");
+            throw new IllegalArgumentException("La tabla " + schema + "." + table + " no está en la papelera de reciclaje");
         }
         jdbcTemplate.execute("FLASHBACK TABLE " + schema + "." + table + " TO BEFORE DROP");
     }
@@ -70,7 +70,7 @@ public class FlashbackService {
 
     private static Timestamp requireTimestamp(LocalDateTime timestamp) {
         if (timestamp == null) {
-            throw new IllegalArgumentException("Timestamp is required");
+            throw new IllegalArgumentException("La fecha y hora es obligatoria");
         }
         return Timestamp.valueOf(timestamp);
     }

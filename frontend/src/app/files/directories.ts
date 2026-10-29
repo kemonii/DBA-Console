@@ -32,14 +32,14 @@ export class Directories {
 
   protected readonly createModel = signal({ name: '', path: '' });
   protected readonly createForm = form(this.createModel, (schema) => {
-    required(schema.name, { message: 'Enter a directory name' });
-    required(schema.path, { message: 'Enter the directory path' });
+    required(schema.name, { message: 'Ingrese un nombre de directorio' });
+    required(schema.path, { message: 'Ingrese la ruta del directorio' });
   });
 
   protected readonly accessModel = signal({ directory: '', user: '' });
   protected readonly accessForm = form(this.accessModel, (schema) => {
-    required(schema.directory, { message: 'Select a directory' });
-    required(schema.user, { message: 'Enter a user name' });
+    required(schema.directory, { message: 'Seleccione un directorio' });
+    required(schema.user, { message: 'Ingrese un nombre de usuario' });
   });
 
   constructor() {
@@ -119,5 +119,5 @@ export class Directories {
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Unexpected error';
+  return error instanceof ApiError ? error.message : 'Error inesperado';
 }

@@ -26,7 +26,7 @@ export class HealthMonitor {
       },
       error: (error: unknown) => {
         this.stateSignal.set('disconnected');
-        this.detailSignal.set(error instanceof ApiError ? error.message : 'Unexpected error');
+        this.detailSignal.set(error instanceof ApiError ? error.message : 'Error inesperado');
       },
     });
   }

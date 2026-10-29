@@ -23,7 +23,7 @@ public final class OracleIdentifiers {
      */
     public static String requireValid(String name) {
         if (name == null || !IDENTIFIER.matcher(name).matches()) {
-            throw new IllegalArgumentException("Invalid Oracle identifier: " + name);
+            throw new IllegalArgumentException("Identificador de Oracle no válido: " + name);
         }
         return name.toUpperCase(Locale.ROOT);
     }
@@ -37,7 +37,7 @@ public final class OracleIdentifiers {
     public static String quoteExisting(String name) {
         if (name == null || name.isEmpty() || name.length() > 128 || name.indexOf('"') >= 0
                 || name.chars().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException("Invalid Oracle identifier: " + name);
+            throw new IllegalArgumentException("Identificador de Oracle no válido: " + name);
         }
         return '"' + name + '"';
     }

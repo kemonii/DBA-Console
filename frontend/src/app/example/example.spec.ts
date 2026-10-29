@@ -67,6 +67,6 @@ describe('Example', () => {
     await fixture.whenStable();
 
     http.expectNone('/api/');
-    expect(root.querySelector('.error')?.textContent).toContain('Enter an endpoint path');
+    expect(root.querySelector('.error')?.textContent).toContain('Ingrese una ruta de endpoint');
   });
 });
