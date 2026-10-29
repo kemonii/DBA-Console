@@ -11,7 +11,7 @@ DBA-Console exposes common database administration tasks for Oracle Database 21c
 | Module | Description | Status |
 |---|---|---|
 | Backup & Recovery | Data Pump exports (`expdp`) by table, schema, or full database; recovery with `impdp` and Flashback. | Planned |
-| Query Tuning & Performance | Execution plans, optimizer statistics, and index maintenance; monitoring of the instance, sessions, and locks. | Planned |
+| Query Tuning & Performance | Execution plans, optimizer statistics, and index maintenance; monitoring of the instance, sessions, and locks. | Available |
 | Security | Users, roles, privileges, and profiles; auditing; tablespace and datafile management. | Available |
 | File Management | Oracle directory objects and the dump and log files stored in them. | API available |
 
@@ -301,3 +301,68 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for branching, pull request, and code con
 ## About
 
 This project was developed as the final project for the EIF-402 Database Administration course at Universidad Nacional, Costa Rica.
+
+## Query tuning and performance endpoints
+
+The frontend at `/tuning` has execution plan, statistics/index maintenance, and monitoring screens.
+All responses use `OperationResult`; Oracle errors retain their ORA code. Object names are validated
+with `OracleIdentifiers.requireValid`. Index columns are plain column names (no SQL expressions).
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/tuning/queries/plan` | Explain one statement; body `{"statement":"SELECT * FROM HR.JOBS"}` |
+| GET | `/api/tuning/queries/statistics/{schema}` | Table NUM_ROWS and LAST_ANALYZED |
+| POST | `/api/tuning/queries/statistics/{schema}/gather` | Gather schema statistics |
+| POST | `/api/tuning/queries/statistics/{schema}/{table}/gather` | Gather table statistics |
+| GET | `/api/tuning/queries/indexes/{schema}` | List indexes |
+| POST | `/api/tuning/queries/indexes` | Create index; body `{"schema":"HR","table":"JOBS","name":"JOBS_IDX","columns":["JOB_ID"],"type":"BTREE"}`; type may also be `BITMAP` |
+| POST | `/api/tuning/queries/indexes/{schema}/{index}/rebuild` | Rebuild index |
+| POST | `/api/tuning/queries/indexes/{schema}/{index}/validate` | Validate structure and read INDEX_STATS |
+| DELETE | `/api/tuning/queries/indexes/{schema}/{index}?confirm=true` | Drop index |
+| GET | `/api/tuning/monitoring/instance` | Instance status |
+| GET | `/api/tuning/monitoring/parameters` | Main system parameters |
+| GET | `/api/tuning/monitoring/sessions` | Current sessions, open cursors and blocking session |
+| GET | `/api/tuning/monitoring/sessions/programs` | Session counts by program |
+| GET | `/api/tuning/monitoring/sessions/users` | Session counts by user |
+| GET | `/api/tuning/monitoring/locks` | Blocking and waiting sessions from V$LOCK and V$SESSION |
+| GET | `/api/tuning/monitoring/locks/objects` | Objects locked by sessions |
+| DELETE | `/api/tuning/monitoring/sessions/{sid}/{serial}?confirm=true` | Kill a session only if the SID and serial still identify a blocker |
+
+EXPLAIN PLAN and its hierarchical CONNECT BY read run inside one `ConnectionCallback`, using a
+unique statement ID and deleting only that plan's rows afterward. ANALYZE INDEX and INDEX_STATS
+also share one connection. Estimates are not actual execution timings. Open cursors use the
+`opened cursors current` session statistic, avoiding counts of cached cursor entries.
+
+The configured administrator needs access to DBA_TABLES, DBA_INDEXES, DBA_OBJECTS, the V$ views,
+PLAN_TABLE and INDEX_STATS; execute permission on DBMS_STATS; and appropriate CREATE/ALTER/DROP
+INDEX, ANALYZE ANY and ALTER SYSTEM privileges for the objects it administers. Oracle edition,
+object type and ownership restrictions are reported by the database. Validation uses offline
+VALIDATE STRUCTURE and can hold locks while it runs. Killing a session rolls back its uncommitted
+work; both destructive operations have an explicit confirmation step in the screen.
+
+### Manual verification on Oracle 21c XE
+
+Use a disposable application schema and table, with the backend configured for XEPDB1:
+
+1. Explain a SELECT on the test table and verify hierarchy and full-scan highlighting. Explain an
+   invalid SELECT and verify the Oracle error appears; repeat to check pooled connections.
+2. Gather table and schema statistics, then reload NUM_ROWS and LAST_ANALYZED.
+3. Create a B-tree index and a bitmap index on suitable test columns. Reload, validate each,
+   rebuild, and confirm dropping each test index. Check invalid identifiers are rejected.
+4. Compare instance, parameters, sessions and session counts with SQL Developer. Open cursors
+   should be nonnegative and visible for each session.
+5. In two separate SQL Developer connections, update the same test row without committing to
+   create a blocker/waiter pair. Refresh blocking locks and locked objects, verify the SID/serial,
+   then confirm termination of the disposable blocking session. Refresh to verify the wait ends.
+   Roll back remaining test work and remove the test objects.
+
+Automated tests mock JDBC/HTTP and do not replace these Oracle integration checks.
+
+Verification on the local Oracle 21c XE instance (2026-10-28): all seven monitoring
+views responded successfully; execution plans returned the hierarchy and full-scan flag;
+schema/table statistics reported 1000 test rows and LAST_ANALYZED; B-tree and bitmap
+indexes passed create/rebuild/validate/drop; a two-connection blocking test was detected
+and resolved by terminating the exact test blocker. The temporary schema was removed.
+The three frontend screens were checked against the running backend. Automated suites:
+314 backend tests (2 skipped, no failures) and 161 frontend tests passed; production
+frontend build and Maven verify succeeded.
