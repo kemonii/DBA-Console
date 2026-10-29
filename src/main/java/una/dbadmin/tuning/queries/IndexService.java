@@ -25,7 +25,7 @@ public class IndexService {
         String tableName = OracleIdentifiers.requireValid(table);
         String indexName = OracleIdentifiers.requireValid(index);
         if (type == null || columns == null || columns.isEmpty() || columns.size() > 32) {
-            throw new IllegalArgumentException("Choose an index type and between 1 and 32 columns");
+            throw new IllegalArgumentException("Elija un tipo de índice y entre 1 y 32 columnas");
         }
         String names = String.join(", ", columns.stream().map(OracleIdentifiers::requireValid).toList());
         jdbc.execute("CREATE " + (type == IndexType.BITMAP ? "BITMAP " : "") + "INDEX " + owner + "." + indexName
@@ -36,7 +36,7 @@ public class IndexService {
     }
     public void drop(String schema, String index, boolean confirm) {
         String name = qualified(schema, index);
-        if (!confirm) throw new IllegalArgumentException("Confirm dropping the index with confirm=true");
+        if (!confirm) throw new IllegalArgumentException("Confirme la eliminación del índice con confirm=true");
         jdbc.execute("DROP INDEX " + name);
     }
     public List<Map<String, Object>> validate(String schema, String index) {

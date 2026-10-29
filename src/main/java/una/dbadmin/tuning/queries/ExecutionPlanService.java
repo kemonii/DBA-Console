@@ -28,7 +28,7 @@ public class ExecutionPlanService {
 
     public List<PlanStep> explain(String statement) {
         if (statement == null || statement.isBlank() || statement.length() > 100000) {
-            throw new IllegalArgumentException("Enter a SQL statement of at most 100000 characters");
+            throw new IllegalArgumentException("Ingrese una sentencia SQL de como máximo 100000 caracteres");
         }
         String sql = statement.strip();
         if (sql.endsWith(";")) sql = sql.substring(0, sql.length() - 1).stripTrailing();

@@ -43,7 +43,7 @@ describe('ExecutionPlan', () => {
     fixture.detectChanges();
     expect(api.explain).toHaveBeenCalledWith('SELECT * FROM HR.JOBS');
     expect(fixture.nativeElement.querySelectorAll('tr.full-scan').length).toBe(1);
-    expect(fixture.nativeElement.textContent).toContain('(full scan)');
+    expect(fixture.nativeElement.textContent).toContain('(recorrido completo)');
   });
   it('shows API errors without retaining an old plan', async () => {
     api.explain.mockReturnValue(throwError(() => new Error('ORA-00942')));
