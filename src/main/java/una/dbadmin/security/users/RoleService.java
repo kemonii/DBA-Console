@@ -51,10 +51,10 @@ public class RoleService {
         String role = OracleIdentifiers.requireValid(name);
         List<String> maintained = jdbcTemplate.queryForList(MAINTAINED_QUERY, String.class, role);
         if (maintained.isEmpty()) {
-            throw new IllegalArgumentException("Role " + role + " does not exist");
+            throw new IllegalArgumentException("El rol " + role + " no existe");
         }
         if ("Y".equals(maintained.get(0))) {
-            throw new IllegalArgumentException("Role " + role + " is maintained by Oracle and cannot be dropped");
+            throw new IllegalArgumentException("El rol " + role + " es mantenido por Oracle y no se puede eliminar");
         }
         jdbcTemplate.execute("DROP ROLE " + role);
     }

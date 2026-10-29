@@ -96,7 +96,7 @@ class TablespaceControllerTest {
                         .content("""
                                 {"name":"ventas","fileName":"ventas01.dbf","nextMb":1}"""))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Initial size is required"));
+                .andExpect(jsonPath("$.message").value("El tamaño inicial es obligatorio"));
     }
 
     @Test

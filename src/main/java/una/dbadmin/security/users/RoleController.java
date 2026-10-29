@@ -33,20 +33,20 @@ public class RoleController {
     @GetMapping
     @Operation(summary = "List roles, the ones created by administrators first")
     public OperationResult list() {
-        return OperationResult.ok("Roles listed", roleService.list());
+        return OperationResult.ok("Roles listados", roleService.list());
     }
 
     @PostMapping
     @Operation(summary = "Create a role")
     public OperationResult create(@RequestBody CreateRoleRequest request) {
         String name = roleService.create(request.name());
-        return OperationResult.ok("Role " + name + " created", name);
+        return OperationResult.ok("Rol " + name + " creado", name);
     }
 
     @DeleteMapping("/{name}")
     @Operation(summary = "Drop a role")
     public OperationResult drop(@PathVariable String name) {
         roleService.drop(name);
-        return OperationResult.ok("Role dropped", null);
+        return OperationResult.ok("Rol eliminado", null);
     }
 }

@@ -65,7 +65,7 @@ public class UserService {
         }
         if (unlimitedQuota || quotaMb != null) {
             if (tablespace == null) {
-                throw new IllegalArgumentException("A quota needs a default tablespace");
+                throw new IllegalArgumentException("Una cuota necesita un tablespace por defecto");
             }
             sql.append(" QUOTA ").append(unlimitedQuota ? "UNLIMITED" : requireQuota(quotaMb) + "M")
                     .append(" ON ").append(tablespace);
@@ -95,7 +95,7 @@ public class UserService {
     public void drop(String username, boolean cascade, boolean confirm) {
         String user = requireManageable(username);
         if (!confirm) {
-            throw new IllegalArgumentException("Dropping a user cannot be undone. Send confirm=true to drop it");
+            throw new IllegalArgumentException("Eliminar un usuario no se puede deshacer. Envíe confirm=true para eliminarlo");
         }
         jdbcTemplate.execute("DROP USER " + user + (cascade ? " CASCADE" : ""));
     }
@@ -107,30 +107,30 @@ public class UserService {
         String user = OracleIdentifiers.requireValid(username);
         List<String> maintained = jdbcTemplate.queryForList(MAINTAINED_QUERY, String.class, user);
         if (maintained.isEmpty()) {
-            throw new IllegalArgumentException("User " + user + " does not exist");
+            throw new IllegalArgumentException("El usuario " + user + " no existe");
         }
         if ("Y".equals(maintained.get(0))) {
-            throw new IllegalArgumentException("User " + user + " is maintained by Oracle and cannot be changed here");
+            throw new IllegalArgumentException("El usuario " + user + " es mantenido por Oracle y no se puede modificar aquí");
         }
         return user;
     }
 
     static String quotedPassword(String password) {
         if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException("Password is required");
+            throw new IllegalArgumentException("La contraseña es obligatoria");
         }
         if (password.length() > MAX_PASSWORD_LENGTH) {
-            throw new IllegalArgumentException("Password is too long");
+            throw new IllegalArgumentException("La contraseña es demasiado larga");
         }
         if (password.indexOf('"') >= 0 || password.chars().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException("Password cannot contain double quotes or control characters");
+            throw new IllegalArgumentException("La contraseña no puede contener comillas dobles ni caracteres de control");
         }
         return "\"" + password + "\"";
     }
 
     private static int requireQuota(int megabytes) {
         if (megabytes < 1 || megabytes > MAX_QUOTA_MB) {
-            throw new IllegalArgumentException("Quota must be between 1 and " + MAX_QUOTA_MB + " MB");
+            throw new IllegalArgumentException("La cuota debe estar entre 1 y " + MAX_QUOTA_MB + " MB");
         }
         return megabytes;
     }

@@ -46,27 +46,29 @@ export class Tablespaces {
     maxSizeMb: '',
   });
   protected readonly createForm = form(this.createModel, (schema) => {
-    required(schema.name, { message: 'Enter a tablespace name' });
-    required(schema.fileName, { message: 'Enter a datafile name, for example ventas01.dbf' });
-    required(schema.sizeMb, { message: 'Enter the initial size' });
-    pattern(schema.sizeMb, MEGABYTES, { message: 'Use a whole number of MB' });
-    required(schema.nextMb, { message: 'Enter the autoextend increment' });
-    pattern(schema.nextMb, MEGABYTES, { message: 'Use a whole number of MB' });
-    pattern(schema.maxSizeMb, MEGABYTES_OR_EMPTY, { message: 'Use a whole number of MB' });
+    required(schema.name, { message: 'Ingrese un nombre de tablespace' });
+    required(schema.fileName, {
+      message: 'Ingrese un nombre de datafile, por ejemplo ventas01.dbf',
+    });
+    required(schema.sizeMb, { message: 'Ingrese el tamaño inicial' });
+    pattern(schema.sizeMb, MEGABYTES, { message: 'Use un número entero de MB' });
+    required(schema.nextMb, { message: 'Ingrese el incremento de autoextensión' });
+    pattern(schema.nextMb, MEGABYTES, { message: 'Use un número entero de MB' });
+    pattern(schema.maxSizeMb, MEGABYTES_OR_EMPTY, { message: 'Use un número entero de MB' });
   });
 
   protected readonly addModel = signal({ fileName: '', sizeMb: '100' });
   protected readonly addForm = form(this.addModel, (schema) => {
-    required(schema.fileName, { message: 'Enter a datafile name' });
-    required(schema.sizeMb, { message: 'Enter the size' });
-    pattern(schema.sizeMb, MEGABYTES, { message: 'Use a whole number of MB' });
+    required(schema.fileName, { message: 'Ingrese un nombre de datafile' });
+    required(schema.sizeMb, { message: 'Ingrese el tamaño' });
+    pattern(schema.sizeMb, MEGABYTES, { message: 'Use un número entero de MB' });
   });
 
   protected readonly resizeModel = signal({ fileId: '', sizeMb: '' });
   protected readonly resizeForm = form(this.resizeModel, (schema) => {
-    required(schema.fileId, { message: 'Select a datafile' });
-    required(schema.sizeMb, { message: 'Enter the new size' });
-    pattern(schema.sizeMb, MEGABYTES, { message: 'Use a whole number of MB' });
+    required(schema.fileId, { message: 'Seleccione un datafile' });
+    required(schema.sizeMb, { message: 'Ingrese el nuevo tamaño' });
+    pattern(schema.sizeMb, MEGABYTES, { message: 'Use un número entero de MB' });
   });
 
   constructor() {
@@ -195,5 +197,5 @@ export class Tablespaces {
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Unexpected error';
+  return error instanceof ApiError ? error.message : 'Error inesperado';
 }

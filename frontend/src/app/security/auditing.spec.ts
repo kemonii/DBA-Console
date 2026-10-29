@@ -167,7 +167,7 @@ describe('Auditing', () => {
       .flush({ ok: true, message: 'ok', data: [] });
     await settle();
 
-    expect(q('.trail-empty').textContent).toContain('No audited actions recorded');
+    expect(q('.trail-empty').textContent).toContain('No hay acciones auditadas registradas');
   });
 
   it('shows the backend message when an action fails', async () => {

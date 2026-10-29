@@ -46,41 +46,41 @@ public class GrantController {
     @GetMapping("/system-privileges")
     @Operation(summary = "List the system privileges that can be granted (SYSTEM_PRIVILEGE_MAP)")
     public OperationResult listSystemPrivilegeNames() {
-        return OperationResult.ok("System privileges listed", grantService.listSystemPrivilegeNames());
+        return OperationResult.ok("Privilegios de sistema listados", grantService.listSystemPrivilegeNames());
     }
 
     @GetMapping("/{grantee}")
     @Operation(summary = "Show the privileges and roles of a user or role")
     public OperationResult privilegesOf(@PathVariable String grantee) {
-        return OperationResult.ok("Privileges listed", grantService.privilegesOf(grantee));
+        return OperationResult.ok("Privilegios listados", grantService.privilegesOf(grantee));
     }
 
     @PostMapping("/system")
     @Operation(summary = "Grant a system privilege")
     public OperationResult grantSystemPrivilege(@RequestBody SystemPrivilegeGrantRequest request) {
         grantService.grantSystemPrivilege(request.privilege(), request.grantee(), request.adminOption());
-        return OperationResult.ok("Privilege granted", null);
+        return OperationResult.ok("Privilegio otorgado", null);
     }
 
     @DeleteMapping("/system")
     @Operation(summary = "Revoke a system privilege")
     public OperationResult revokeSystemPrivilege(@RequestParam String privilege, @RequestParam String grantee) {
         grantService.revokeSystemPrivilege(privilege, grantee);
-        return OperationResult.ok("Privilege revoked", null);
+        return OperationResult.ok("Privilegio revocado", null);
     }
 
     @PostMapping("/role")
     @Operation(summary = "Grant a role")
     public OperationResult grantRole(@RequestBody RoleGrantRequest request) {
         grantService.grantRole(request.role(), request.grantee(), request.adminOption());
-        return OperationResult.ok("Role granted", null);
+        return OperationResult.ok("Rol otorgado", null);
     }
 
     @DeleteMapping("/role")
     @Operation(summary = "Revoke a role")
     public OperationResult revokeRole(@RequestParam String role, @RequestParam String grantee) {
         grantService.revokeRole(role, grantee);
-        return OperationResult.ok("Role revoked", null);
+        return OperationResult.ok("Rol revocado", null);
     }
 
     @PostMapping("/object")
@@ -88,7 +88,7 @@ public class GrantController {
     public OperationResult grantObjectPrivileges(@RequestBody ObjectPrivilegeGrantRequest request) {
         grantService.grantObjectPrivileges(request.privileges(), request.owner(), request.object(),
                 request.grantee(), request.grantOption());
-        return OperationResult.ok("Privileges granted", null);
+        return OperationResult.ok("Privilegios otorgados", null);
     }
 
     @DeleteMapping("/object")
@@ -96,6 +96,6 @@ public class GrantController {
     public OperationResult revokeObjectPrivileges(@RequestParam List<String> privileges, @RequestParam String owner,
                                                   @RequestParam String object, @RequestParam String grantee) {
         grantService.revokeObjectPrivileges(privileges, owner, object, grantee);
-        return OperationResult.ok("Privileges revoked", null);
+        return OperationResult.ok("Privilegios revocados", null);
     }
 }
