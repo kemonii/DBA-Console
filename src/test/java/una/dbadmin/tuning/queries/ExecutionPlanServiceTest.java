@@ -55,4 +55,22 @@ class ExecutionPlanServiceTest {
         assertThrows(Exception.class, () -> new ExecutionPlanService(jdbc).explain("invalid SQL"));
         verify(cleanup).executeUpdate();
     }
+    @Test
+    void keepsTheExplainErrorWhenCleanupAlsoFails() throws Exception {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        Connection connection = mock(Connection.class);
+        Statement command = mock(Statement.class);
+        PreparedStatement cleanup = mock(PreparedStatement.class);
+        SQLException explainError = new SQLException("ORA-00942: table or view does not exist");
+        SQLException cleanupError = new SQLException("ORA-03113: end-of-file on communication channel");
+        when(connection.createStatement()).thenReturn(command);
+        when(command.execute(anyString())).thenThrow(explainError);
+        when(connection.prepareStatement(anyString())).thenReturn(cleanup);
+        when(cleanup.executeUpdate()).thenThrow(cleanupError);
+        when(jdbc.execute(any(ConnectionCallback.class))).thenAnswer(invocation ->
+                ((ConnectionCallback<?>) invocation.getArgument(0)).doInConnection(connection));
+        var thrown = assertThrows(SQLException.class, () -> new ExecutionPlanService(jdbc).explain("SELECT * FROM missing"));
+        assertSame(explainError, thrown);
+        assertArrayEquals(new Throwable[] { cleanupError }, thrown.getSuppressed());
+    }
 }

@@ -1,5 +1,6 @@
 package una.dbadmin.tuning.queries;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.jdbc.core.ConnectionCallback;
@@ -34,6 +35,7 @@ public class ExecutionPlanService {
         final String query = sql;
         String id = UUID.randomUUID().toString().replace("-", "").substring(0, 30);
         return jdbc.execute((ConnectionCallback<List<PlanStep>>) connection -> {
+            Exception failure = null;
             try {
                 try (var command = connection.createStatement()) {
                     command.execute("EXPLAIN PLAN SET STATEMENT_ID = '" + id + "' FOR " + query);
@@ -54,10 +56,17 @@ public class ExecutionPlanService {
                         return rows;
                     }
                 }
+            } catch (SQLException | RuntimeException e) {
+                failure = e;
+                throw e;
             } finally {
                 try (var cleanup = connection.prepareStatement("DELETE FROM plan_table WHERE statement_id = ?")) {
                     cleanup.setString(1, id);
                     cleanup.executeUpdate();
+                } catch (SQLException cleanupFailure) {
+                    // Keep the EXPLAIN error the user needs; the cleanup error rides along as suppressed.
+                    if (failure == null) throw cleanupFailure;
+                    failure.addSuppressed(cleanupFailure);
                 }
             }
         });
