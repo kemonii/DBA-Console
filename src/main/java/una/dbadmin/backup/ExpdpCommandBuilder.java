@@ -24,7 +24,7 @@ public class ExpdpCommandBuilder {
     }
 
     public DataPumpCommand build(BackupRequest request) {
-        return DataPumpCommands.build("expdp", "backup", ".log",
+        return DataPumpCommands.build("expdp", "el respaldo", ".log",
                 user + "/" + password + "@" + connectIdentifier, user + "/******@" + connectIdentifier,
                 request.type(), request.schema(), request.table(), request.directory(), request.fileName(),
                 tableFilters(request));
@@ -41,10 +41,10 @@ public class ExpdpCommandBuilder {
             return List.of();
         }
         if (include && exclude) {
-            throw new IllegalArgumentException("includeTables and excludeTables cannot be used together");
+            throw new IllegalArgumentException("includeTables y excludeTables no se pueden usar juntos");
         }
         if (request.type() == BackupType.TABLE) {
-            throw new IllegalArgumentException("Table filters apply to schema and full backups, not to a table backup");
+            throw new IllegalArgumentException("Los filtros de tablas aplican a respaldos de esquema y completos, no a un respaldo de tabla");
         }
         return List.of(include
                 ? filter("INCLUDE", request.includeTables())

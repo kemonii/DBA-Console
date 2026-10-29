@@ -28,15 +28,15 @@ export class FlashbackPage {
 
   protected readonly tableModel = signal({ schema: '', table: '' });
   protected readonly tableForm = form(this.tableModel, (schema) => {
-    required(schema.schema, { message: 'Schema is required' });
-    required(schema.table, { message: 'Table is required' });
+    required(schema.schema, { message: 'El esquema es obligatorio' });
+    required(schema.table, { message: 'La tabla es obligatoria' });
   });
 
   protected readonly rowsModel = signal({ schema: '', table: '', timestamp: '' });
   protected readonly rowsForm = form(this.rowsModel, (schema) => {
-    required(schema.schema, { message: 'Schema is required' });
-    required(schema.table, { message: 'Table is required' });
-    required(schema.timestamp, { message: 'Timestamp is required' });
+    required(schema.schema, { message: 'El esquema es obligatorio' });
+    required(schema.table, { message: 'La tabla es obligatoria' });
+    required(schema.timestamp, { message: 'La fecha y hora es obligatoria' });
   });
 
   protected readonly tableOutcome = signal<Outcome | null>(null);
@@ -124,5 +124,5 @@ export class FlashbackPage {
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Unexpected error';
+  return error instanceof ApiError ? error.message : 'Error inesperado';
 }

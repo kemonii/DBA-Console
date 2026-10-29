@@ -26,7 +26,7 @@ final class DataPumpCommands {
                                  BackupType type, String schema, String table, String directory, String fileName,
                                  List<String> parfileLines) {
         if (type == null) {
-            throw new IllegalArgumentException("Type is required for a " + operation);
+            throw new IllegalArgumentException("El tipo es obligatorio para " + operation);
         }
         String validDirectory = OracleIdentifiers.requireValid(directory);
         OracleIdentifiers.requireValid(fileName);
@@ -48,12 +48,12 @@ final class DataPumpCommands {
     private static String scopeParameter(BackupType type, String schema, String table, String operation) {
         return switch (type) {
             case TABLE -> {
-                requirePresent(schema, "Schema is required for a table " + operation);
-                requirePresent(table, "Table is required for a table " + operation);
+                requirePresent(schema, "El esquema es obligatorio para " + operation + " de una tabla");
+                requirePresent(table, "La tabla es obligatoria para " + operation + " de una tabla");
                 yield "TABLES=" + OracleIdentifiers.requireValid(schema) + "." + OracleIdentifiers.requireValid(table);
             }
             case SCHEMA -> {
-                requirePresent(schema, "Schema is required for a schema " + operation);
+                requirePresent(schema, "El esquema es obligatorio para " + operation + " de un esquema");
                 yield "SCHEMAS=" + OracleIdentifiers.requireValid(schema);
             }
             case FULL -> "FULL=Y";

@@ -23,18 +23,18 @@ public class FlashbackController {
     @PostMapping("/table")
     public OperationResult restoreTable(@Valid @RequestBody FlashbackTableRequest request) {
         service.restoreTable(request);
-        return OperationResult.ok("Table " + OracleIdentifiers.requireValid(request.schema()) + "."
-                + OracleIdentifiers.requireValid(request.table()) + " restored from the recycle bin", null);
+        return OperationResult.ok("Tabla " + OracleIdentifiers.requireValid(request.schema()) + "."
+                + OracleIdentifiers.requireValid(request.table()) + " restaurada desde la papelera de reciclaje", null);
     }
 
     @PostMapping("/query")
     public OperationResult query(@Valid @RequestBody FlashbackQueryRequest request) {
-        return OperationResult.ok("Rows as of " + request.timestamp(), service.queryAsOf(request));
+        return OperationResult.ok("Filas al " + request.timestamp(), service.queryAsOf(request));
     }
 
     @PostMapping("/restore")
     public OperationResult restoreRows(@Valid @RequestBody FlashbackQueryRequest request) {
         int restored = service.restoreRows(request);
-        return OperationResult.ok(restored + " row(s) restored", restored);
+        return OperationResult.ok(restored + " fila(s) restaurada(s)", restored);
     }
 }

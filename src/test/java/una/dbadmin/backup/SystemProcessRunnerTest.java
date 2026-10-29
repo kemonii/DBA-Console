@@ -51,7 +51,7 @@ class SystemProcessRunnerTest {
                 assertThrows(IllegalStateException.class, () -> runner.run(List.of(JAVA, sleeper.toString())));
         Duration elapsed = Duration.ofNanos(System.nanoTime() - start);
 
-        assertEquals(JAVA + " did not finish within 3 seconds and was stopped", error.getMessage());
+        assertEquals(JAVA + " no terminó en 3 segundos y se detuvo", error.getMessage());
         assertTrue(elapsed.compareTo(Duration.ofSeconds(30)) < 0, "took " + elapsed);
     }
 
@@ -60,7 +60,7 @@ class SystemProcessRunnerTest {
         UncheckedIOException error = assertThrows(UncheckedIOException.class,
                 () -> new SystemProcessRunner().run(List.of("dba-console-no-such-program")));
 
-        assertEquals("Could not run dba-console-no-such-program; check that it is installed and on the PATH",
+        assertEquals("No se pudo ejecutar dba-console-no-such-program; verifique que esté instalado y en el PATH",
                 error.getMessage());
     }
 }

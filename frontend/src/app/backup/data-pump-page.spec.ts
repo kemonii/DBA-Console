@@ -67,12 +67,12 @@ describe('DataPumpPage', () => {
 
   it('titles the page after its mode', async () => {
     await create('backup');
-    expect(root.querySelector('h2')?.textContent).toContain('Backup');
+    expect(root.querySelector('h2')?.textContent).toContain('Respaldo');
   });
 
   it('titles a recovery page accordingly', async () => {
     await create('recovery');
-    expect(root.querySelector('h2')?.textContent).toContain('Recovery');
+    expect(root.querySelector('h2')?.textContent).toContain('Recuperación');
   });
 
   it('asks for the fields the selected scope needs', async () => {
@@ -115,7 +115,7 @@ describe('DataPumpPage', () => {
     await fillSchemaBackup();
 
     await submit();
-    expect(root.querySelector('.running')?.textContent).toContain('can take a minute');
+    expect(root.querySelector('.running')?.textContent).toContain('Puede tardar un minuto');
 
     http.expectOne('/api/backup').flush(runResult('expdp', []));
     await settle();
@@ -164,7 +164,7 @@ describe('DataPumpPage', () => {
     await submit();
 
     http.expectNone('/api/backup');
-    expect(root.querySelector('.error')?.textContent).toContain('Schema is required');
+    expect(root.querySelector('.error')?.textContent).toContain('El esquema es obligatorio');
   });
 
   it('turns the table filter into a list of names for a backup', async () => {
@@ -199,7 +199,7 @@ describe('DataPumpPage', () => {
     await type('type', 'FULL');
     await type('fileName', 'everything');
 
-    expect(root.querySelector('.warning')?.textContent).toContain('overwrites the whole database');
+    expect(root.querySelector('.warning')?.textContent).toContain('sobrescribe toda la base de datos');
 
     await submit();
     let req = http.expectOne('/api/recovery');

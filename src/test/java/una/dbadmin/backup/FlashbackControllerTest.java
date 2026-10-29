@@ -37,7 +37,7 @@ class FlashbackControllerTest {
         mvc.perform(post("/api/flashback/table").contentType(MediaType.APPLICATION_JSON).content(TABLE_BODY))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ok").value(true))
-                .andExpect(jsonPath("$.message").value("Table HR.EMPLOYEES restored from the recycle bin"));
+                .andExpect(jsonPath("$.message").value("Tabla HR.EMPLOYEES restaurada desde la papelera de reciclaje"));
 
         verify(service).restoreTable(new FlashbackTableRequest("hr", "employees"));
     }
@@ -69,7 +69,7 @@ class FlashbackControllerTest {
 
         mvc.perform(post("/api/flashback/restore").contentType(MediaType.APPLICATION_JSON).content(AT_BODY))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("3 row(s) restored"))
+                .andExpect(jsonPath("$.message").value("3 fila(s) restaurada(s)"))
                 .andExpect(jsonPath("$.data").value(3));
     }
 
