@@ -126,7 +126,7 @@ public class GrantService {
 
     private static String requireObjectPrivileges(List<String> names) {
         if (names == null || names.isEmpty()) {
-            throw new IllegalArgumentException("Select at least one object privilege");
+            throw new IllegalArgumentException("Seleccione al menos un privilegio sobre el objeto");
         }
         List<String> privileges = names.stream()
                 .map(name -> name == null ? "" : name.trim().toUpperCase(Locale.ROOT))
@@ -134,7 +134,7 @@ public class GrantService {
                 .toList();
         for (String privilege : privileges) {
             if (!OBJECT_PRIVILEGES.contains(privilege)) {
-                throw new IllegalArgumentException("Unknown object privilege: " + privilege);
+                throw new IllegalArgumentException("Privilegio sobre objeto desconocido: " + privilege);
             }
         }
         return String.join(", ", privileges);
@@ -150,7 +150,7 @@ public class GrantService {
                 ? jdbcTemplate.queryForObject(SYSTEM_PRIVILEGE_EXISTS_QUERY, Integer.class, privilege)
                 : null;
         if (count == null || count == 0) {
-            throw new IllegalArgumentException("Unknown system privilege: " + name);
+            throw new IllegalArgumentException("Privilegio de sistema desconocido: " + name);
         }
         return privilege;
     }
@@ -160,7 +160,7 @@ public class GrantService {
         Integer maintained = jdbcTemplate.queryForObject(MAINTAINED_GRANTEE_QUERY, Integer.class, grantee);
         if (maintained != null && maintained > 0) {
             throw new IllegalArgumentException(
-                    grantee + " is maintained by Oracle; its privileges cannot be revoked here");
+                    grantee + " es mantenido por Oracle; sus privilegios no se pueden revocar aquí");
         }
         return grantee;
     }

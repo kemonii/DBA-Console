@@ -25,9 +25,9 @@ public class BackupController {
     public ResponseEntity<OperationResult> backup(@Valid @RequestBody BackupRequest request) {
         BackupResult result = service.backup(request);
         if (result.success()) {
-            return ResponseEntity.ok(OperationResult.ok("Backup completed", result));
+            return ResponseEntity.ok(OperationResult.ok("Respaldo completado", result));
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new OperationResult(false, "Backup failed with exit code " + result.exitCode(), result));
+                .body(new OperationResult(false, "El respaldo falló con el código de salida " + result.exitCode(), result));
     }
 }

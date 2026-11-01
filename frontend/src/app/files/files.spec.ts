@@ -39,7 +39,7 @@ describe('File Management routes', () => {
     await settle();
 
     expect(TestBed.inject(Router).url).toBe('/files/directories');
-    expect(text()).toContain('Directory objects');
+    expect(text()).toContain('Objetos directorio');
   });
 
   it('shows the sub-navigation with both screens', async () => {
@@ -50,7 +50,7 @@ describe('File Management routes', () => {
     const links = Array.from(
       (harness.fixture.nativeElement as HTMLElement).querySelectorAll('nav a'),
     ).map((a) => a.textContent?.trim());
-    expect(links).toEqual(['Directories', 'Backup files']);
+    expect(links).toEqual(['Directorios', 'Archivos de respaldo']);
   });
 
   it('serves the backup files screen at /files/browse', async () => {
@@ -58,7 +58,7 @@ describe('File Management routes', () => {
     http.expectOne('/api/files/directories').flush({ ok: true, message: 'ok', data: [] });
     await settle();
 
-    expect(text()).toContain('Select a directory to see its files');
+    expect(text()).toContain('Seleccione un directorio para ver sus archivos');
   });
 
   it('serves the files of a directory at /files/directories/:name/files', async () => {
@@ -69,6 +69,6 @@ describe('File Management routes', () => {
       .flush({ ok: true, message: 'ok', data: [] });
     await settle();
 
-    expect(text()).toContain('This directory has no .dmp or .log files');
+    expect(text()).toContain('Este directorio no tiene archivos .dmp ni .log');
   });
 });

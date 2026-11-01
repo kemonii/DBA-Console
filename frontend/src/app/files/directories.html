@@ -1,4 +1,4 @@
-<h2>Directory objects</h2>
+<h2>Objetos directorio</h2>
 
 <section aria-live="polite">
   @if (successMessage()) {
@@ -12,17 +12,17 @@
 @if (listError()) {
   <p class="error" role="alert">{{ listError() }}</p>
 } @else if (!loaded()) {
-  <p>Loading...</p>
+  <p>Cargando...</p>
 } @else if (directories().length === 0) {
-  <p>There are no directory objects yet. Create one below.</p>
+  <p>Todavía no hay objetos directorio. Cree uno abajo.</p>
 } @else {
   <table>
-    <caption class="visually-hidden">Directory objects</caption>
+    <caption class="visually-hidden">Objetos directorio</caption>
     <thead>
       <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Path</th>
-        <th scope="col">Actions</th>
+        <th scope="col">Nombre</th>
+        <th scope="col">Ruta</th>
+        <th scope="col">Acciones</th>
       </tr>
     </thead>
     <tbody>
@@ -31,7 +31,7 @@
           <td>{{ directory.name }}</td>
           <td>{{ directory.path }}</td>
           <td class="actions">
-            <a [routerLink]="['/files/directories', directory.name, 'files']">Files</a>
+            <a [routerLink]="['/files/directories', directory.name, 'files']">Archivos</a>
             <button
               type="button"
               class="danger"
@@ -39,7 +39,7 @@
               [disabled]="busy()"
               (click)="askDrop(directory.name)"
             >
-              Drop
+              Eliminar
             </button>
           </td>
         </tr>
@@ -49,45 +49,45 @@
 }
 
 @if (pendingDrop()) {
-  <div class="confirm" role="alertdialog" aria-label="Confirm drop">
+  <div class="confirm" role="alertdialog" aria-label="Confirmar eliminación">
     <p>
-      Drop directory object <strong>{{ pendingDrop() }}</strong
-      >? The files on disk are not deleted, but the database can no longer reach them through
-      this directory.
+      ¿Eliminar el objeto directorio <strong>{{ pendingDrop() }}</strong
+      >? Los archivos en disco no se borran, pero la base de datos ya no podrá acceder a ellos
+      mediante este directorio.
     </p>
     <button type="button" class="danger" data-action="confirm" (click)="confirmDrop()">
-      Drop directory
+      Eliminar directorio
     </button>
-    <button type="button" data-action="cancel" (click)="cancelDrop()">Cancel</button>
+    <button type="button" data-action="cancel" (click)="cancelDrop()">Cancelar</button>
   </div>
 }
 
-<h2>Create a directory object</h2>
+<h2>Crear un objeto directorio</h2>
 <form (submit)="onCreate($event)" novalidate>
   <div class="field">
-    <label for="create-name">Name</label>
+    <label for="create-name">Nombre</label>
     <input id="create-name" type="text" [formField]="createForm.name" />
     @if (createForm.name().touched() && createForm.name().errors().length) {
       <p class="error" role="alert">{{ createForm.name().errors()[0].message }}</p>
     }
   </div>
   <div class="field">
-    <label for="create-path">Path on the database host</label>
+    <label for="create-path">Ruta en el servidor de la base de datos</label>
     <input id="create-path" type="text" [formField]="createForm.path" />
     @if (createForm.path().touched() && createForm.path().errors().length) {
       <p class="error" role="alert">{{ createForm.path().errors()[0].message }}</p>
     }
   </div>
-  <button id="create-submit" type="submit" [disabled]="busy()">Create</button>
+  <button id="create-submit" type="submit" [disabled]="busy()">Crear</button>
 </form>
 
-<h2>Access</h2>
-<p>Grant or revoke READ and WRITE on a directory object for a database user.</p>
+<h2>Acceso</h2>
+<p>Otorgue o revoque READ y WRITE sobre un objeto directorio a un usuario de la base de datos.</p>
 <form (submit)="onGrant($event)" novalidate>
   <div class="field">
-    <label for="access-directory">Directory</label>
+    <label for="access-directory">Directorio</label>
     <select id="access-directory" [formField]="accessForm.directory">
-      <option value="">Select a directory</option>
+      <option value="">Seleccione un directorio</option>
       @for (directory of directories(); track directory.name) {
         <option [value]="directory.name">{{ directory.name }}</option>
       }
@@ -97,16 +97,16 @@
     }
   </div>
   <div class="field">
-    <label for="access-user">User</label>
+    <label for="access-user">Usuario</label>
     <input id="access-user" type="text" [formField]="accessForm.user" />
     @if (accessForm.user().touched() && accessForm.user().errors().length) {
       <p class="error" role="alert">{{ accessForm.user().errors()[0].message }}</p>
     }
   </div>
   <div class="row">
-    <button id="grant-submit" type="submit" [disabled]="busy()">Grant</button>
+    <button id="grant-submit" type="submit" [disabled]="busy()">Otorgar</button>
     <button id="revoke-submit" type="button" [disabled]="busy()" (click)="onRevoke()">
-      Revoke
+      Revocar
     </button>
   </div>
 </form>

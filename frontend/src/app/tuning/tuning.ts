@@ -5,11 +5,11 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   selector: 'app-tuning',
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
   template: `
-    <h1>Query Tuning &amp; Performance</h1>
-    <nav class="subnav" aria-label="Query tuning">
-      <a routerLink="/tuning/plan" routerLinkActive="active">Execution plan</a>
-      <a routerLink="/tuning/statistics" routerLinkActive="active">Statistics &amp; indexes</a>
-      <a routerLink="/tuning/monitoring" routerLinkActive="active">Monitoring</a>
+    <h1>Tunning de consultas y performance</h1>
+    <nav class="subnav" aria-label="Tunning de consultas">
+      <a routerLink="/tuning/plan" routerLinkActive="active">Plan de ejecución</a>
+      <a routerLink="/tuning/statistics" routerLinkActive="active">Estadísticas e índices</a>
+      <a routerLink="/tuning/monitoring" routerLinkActive="active">Monitoreo</a>
     </nav>
     <router-outlet />
   `,

@@ -2,17 +2,17 @@
 
 <form (submit)="onSubmit($event)" novalidate>
   <div class="field">
-    <label for="type">Scope</label>
+    <label for="type">Alcance</label>
     <select id="type" [formField]="dataForm.type">
-      <option value="TABLE">Table</option>
-      <option value="SCHEMA">Schema</option>
-      <option value="FULL">Full database</option>
+      <option value="SCHEMA">Schemas</option>
+      <option value="TABLE">Tablas</option>
+      <option value="FULL">Full</option>
     </select>
   </div>
 
   @if (model().type !== 'FULL') {
     <div class="field">
-      <label for="schema">Schema</label>
+      <label for="schema">Esquema</label>
       <input id="schema" type="text" autocomplete="off" [formField]="dataForm.schema" />
       @if (dataForm.schema().touched() && dataForm.schema().errors().length) {
         <p class="error" role="alert">{{ dataForm.schema().errors()[0].message }}</p>
@@ -21,7 +21,7 @@
   }
   @if (model().type === 'TABLE') {
     <div class="field">
-      <label for="table">Table</label>
+      <label for="table">Tabla</label>
       <input id="table" type="text" autocomplete="off" [formField]="dataForm.table" />
       @if (dataForm.table().touched() && dataForm.table().errors().length) {
         <p class="error" role="alert">{{ dataForm.table().errors()[0].message }}</p>
@@ -30,14 +30,14 @@
   }
 
   <div class="field">
-    <label for="directory">Directory object</label>
+    <label for="directory">Objeto directorio</label>
     <input id="directory" type="text" autocomplete="off" [formField]="dataForm.directory" />
     @if (dataForm.directory().touched() && dataForm.directory().errors().length) {
       <p class="error" role="alert">{{ dataForm.directory().errors()[0].message }}</p>
     }
   </div>
   <div class="field">
-    <label for="fileName">File name (without extension)</label>
+    <label for="fileName">Nombre del archivo (sin extensión)</label>
     <input id="fileName" type="text" autocomplete="off" [formField]="dataForm.fileName" />
     @if (dataForm.fileName().touched() && dataForm.fileName().errors().length) {
       <p class="error" role="alert">{{ dataForm.fileName().errors()[0].message }}</p>
@@ -46,16 +46,16 @@
 
   @if (canFilter()) {
     <div class="field">
-      <label for="filterKind">Tables</label>
+      <label for="filterKind">Tablas</label>
       <select id="filterKind" [formField]="dataForm.filterKind">
-        <option value="none">All tables</option>
-        <option value="include">Only these tables</option>
-        <option value="exclude">All except these tables</option>
+        <option value="none">Todas las tablas</option>
+        <option value="include">Solo estas tablas</option>
+        <option value="exclude">Todas excepto estas tablas</option>
       </select>
     </div>
     @if (model().filterKind !== 'none') {
       <div class="field">
-        <label for="filterTables">Table names, separated by commas</label>
+        <label for="filterTables">Nombres de tablas, separados por comas</label>
         <textarea id="filterTables" rows="2" [formField]="dataForm.filterTables"></textarea>
       </div>
     }
@@ -63,33 +63,33 @@
 
   @if (isFullRecovery()) {
     <p class="warning">
-      A full recovery overwrites the whole database. Run it only on purpose and never during a demo.
+      Una recuperación completa sobrescribe toda la base de datos. Ejecútela solo a propósito y nunca durante una demostración.
     </p>
     <label class="inline" for="confirmFull">
       <input id="confirmFull" type="checkbox" [formField]="dataForm.confirmFull" />
-      I understand and want to run a full recovery
+      Entiendo y quiero ejecutar una recuperación completa
     </label>
   }
 
-  <div><button type="submit" [disabled]="loading()">{{ loading() ? 'Running...' : title }}</button></div>
+  <div><button type="submit" [disabled]="loading()">{{ loading() ? 'Ejecutando...' : title }}</button></div>
 </form>
 
 <section aria-live="polite">
   @if (loading()) {
-    <p class="running" role="status">Running. This can take a minute or more, so keep this page open.</p>
+    <p class="running" role="status">En ejecución. Puede tardar un minuto o más; mantenga esta página abierta.</p>
   }
   @if (outcome(); as result) {
     <p [class]="result.ok ? 'success' : 'error'" [attr.role]="result.ok ? null : 'alert'">{{ result.message }}</p>
   }
   @if (run(); as details) {
-    <h3>Command</h3>
+    <h3>Comando</h3>
     <pre class="command">{{ details.command }}</pre>
-    <h3>Output</h3>
+    <h3>Salida</h3>
     <pre class="output">{{ details.output.join('\n') }}</pre>
-    <button type="button" class="view-log" (click)="viewLog()">View log</button>
+    <button type="button" class="view-log" (click)="viewLog()">Ver log</button>
   }
   @if (logLines(); as lines) {
-    <h3>Log file</h3>
+    <h3>Archivo de log</h3>
     <pre class="log">{{ lines.join('\n') }}</pre>
   }
   @if (logError()) {

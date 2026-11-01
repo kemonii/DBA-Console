@@ -30,7 +30,7 @@ export class ExecutionPlan {
       try {
         this.rows.set((await firstValueFrom(this.api.explain(this.model().statement))).data ?? []);
       } catch (error) {
-        this.error.set(error instanceof Error ? error.message : 'Unexpected error');
+        this.error.set(error instanceof Error ? error.message : 'Error inesperado');
       } finally {
         this.busy.set(false);
       }

@@ -146,7 +146,7 @@ describe('Tablespaces', () => {
     await click('#create-submit');
 
     http.expectNone((r) => r.method === 'POST');
-    expect(q('.error').textContent).toContain('Use a whole number of MB');
+    expect(q('.error').textContent).toContain('Use un número entero de MB');
   });
 
   it('asks for confirmation before dropping a tablespace', async () => {
@@ -155,7 +155,7 @@ describe('Tablespaces', () => {
     await click('[data-drop="VENTAS"]');
     http.expectNone((r) => r.method === 'DELETE');
     expect(q('.confirm').textContent).toContain('VENTAS');
-    expect(q('.confirm').textContent).toContain('cannot be undone');
+    expect(q('.confirm').textContent).toContain('no se puede deshacer');
 
     await click('.confirm [data-action="confirm"]');
     const del = http.expectOne('/api/security/tablespaces/VENTAS?confirm=true');
@@ -182,9 +182,9 @@ describe('Tablespaces', () => {
 
     await selectVentas();
 
-    expect(root.textContent).toContain('Datafiles of VENTAS');
+    expect(root.textContent).toContain('Datafiles de VENTAS');
     expect(q('table.datafiles').textContent).toContain('ventas01.dbf');
-    expect(q('table.datafiles').textContent).toContain('Yes, up to 1024 MB');
+    expect(q('table.datafiles').textContent).toContain('Sí, hasta 1024 MB');
   });
 
   it('resizes a datafile and refreshes both lists', async () => {

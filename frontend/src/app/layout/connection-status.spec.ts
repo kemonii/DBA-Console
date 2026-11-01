@@ -24,7 +24,7 @@ describe('ConnectionStatus', () => {
     http.expectOne('/api/health');
     await fixture.whenStable();
 
-    expect(statusText()).toBe('Checking connection');
+    expect(statusText()).toBe('Verificando conexión');
   });
 
   it('shows Connected when the database is reachable', async () => {
@@ -33,14 +33,14 @@ describe('ConnectionStatus', () => {
       .flush({ ok: true, message: 'Database connection is available', data: null });
     await fixture.whenStable();
 
-    expect(statusText()).toBe('Connected');
+    expect(statusText()).toBe('Conectado');
   });
 
   it('shows Disconnected when the backend is down', async () => {
     http.expectOne('/api/health').error(new ProgressEvent('error'));
     await fixture.whenStable();
 
-    expect(statusText()).toBe('Disconnected');
+    expect(statusText()).toBe('Desconectado');
   });
 
   it('checks again when Recheck is pressed', async () => {
@@ -54,6 +54,6 @@ describe('ConnectionStatus', () => {
       .flush({ ok: true, message: 'Database connection is available', data: null });
     await fixture.whenStable();
 
-    expect(statusText()).toBe('Connected');
+    expect(statusText()).toBe('Conectado');
   });
 });

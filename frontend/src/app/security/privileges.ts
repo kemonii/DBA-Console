@@ -76,30 +76,30 @@ export class Privileges {
 
   protected readonly roleModel = signal({ name: '' });
   protected readonly roleForm = form(this.roleModel, (schema) => {
-    required(schema.name, { message: 'Enter a role name' });
+    required(schema.name, { message: 'Ingrese un nombre de rol' });
   });
 
   protected readonly granteeModel = signal({ grantee: '' });
   protected readonly granteeForm = form(this.granteeModel, (schema) => {
-    required(schema.grantee, { message: 'Enter a user or role' });
+    required(schema.grantee, { message: 'Ingrese un usuario o rol' });
   });
 
   protected readonly grantModel = signal({ ...EMPTY_GRANT });
   protected readonly grantForm = form(this.grantModel, (schema) => {
     required(schema.privilege, {
-      message: 'Select a system privilege',
+      message: 'Seleccione un privilegio de sistema',
       when: ({ valueOf }) => valueOf(schema.kind) === 'system',
     });
     required(schema.role, {
-      message: 'Select a role',
+      message: 'Seleccione un rol',
       when: ({ valueOf }) => valueOf(schema.kind) === 'role',
     });
     required(schema.owner, {
-      message: 'Enter the owner (schema) of the object',
+      message: 'Ingrese el propietario (esquema) del objeto',
       when: ({ valueOf }) => valueOf(schema.kind) === 'object',
     });
     required(schema.object, {
-      message: 'Enter the object name',
+      message: 'Ingrese el nombre del objeto',
       when: ({ valueOf }) => valueOf(schema.kind) === 'object',
     });
   });
@@ -182,7 +182,7 @@ export class Privileges {
       } else {
         const selected = this.selectedObjectPrivileges();
         if (selected.length === 0) {
-          this.errorMessage.set('Select at least one object privilege');
+          this.errorMessage.set('Seleccione al menos un privilegio sobre el objeto');
           return;
         }
         action = () =>
@@ -287,5 +287,5 @@ export class Privileges {
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Unexpected error';
+  return error instanceof ApiError ? error.message : 'Error inesperado';
 }

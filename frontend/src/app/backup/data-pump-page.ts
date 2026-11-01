@@ -29,7 +29,7 @@ export class DataPumpPage {
   private readonly api = inject(BackupApi);
 
   protected readonly mode: Mode = inject(ActivatedRoute).snapshot.data['mode'];
-  protected readonly title = this.mode === 'backup' ? 'Backup' : 'Recovery';
+  protected readonly title = this.mode === 'backup' ? 'Respaldo' : 'Recuperación';
 
   protected readonly model = signal({
     type: 'SCHEMA' as Scope,
@@ -44,15 +44,15 @@ export class DataPumpPage {
 
   protected readonly dataForm = form(this.model, (schema) => {
     required(schema.schema, {
-      message: 'Schema is required',
+      message: 'El esquema es obligatorio',
       when: ({ valueOf }) => valueOf(schema.type) !== 'FULL',
     });
     required(schema.table, {
-      message: 'Table is required',
+      message: 'La tabla es obligatoria',
       when: ({ valueOf }) => valueOf(schema.type) === 'TABLE',
     });
-    required(schema.directory, { message: 'Directory is required' });
-    required(schema.fileName, { message: 'File name is required' });
+    required(schema.directory, { message: 'El directorio es obligatorio' });
+    required(schema.fileName, { message: 'El nombre del archivo es obligatorio' });
   });
 
   protected readonly canFilter = computed(() => this.mode === 'backup' && this.model().type !== 'TABLE');
@@ -64,7 +64,7 @@ export class DataPumpPage {
   protected readonly logLines = signal<string[] | null>(null);
   protected readonly logError = signal('');
 
-  /** Directory and log file of the last run, so "View log" shows the log of what was just executed. */
+  /** Directory and log file of the last run, so "Ver log" shows the log of what was just executed. */
   private lastRun: { directory: string; logFile: string } | null = null;
 
   protected onSubmit(event: Event): void {
@@ -87,7 +87,7 @@ export class DataPumpPage {
         this.run.set(response.data);
       } catch (error) {
         // A failed run still carries the command and the output, which explain what went wrong.
-        this.outcome.set({ ok: false, message: error instanceof ApiError ? error.message : 'Unexpected error' });
+        this.outcome.set({ ok: false, message: error instanceof ApiError ? error.message : 'Error inesperado' });
         this.run.set(error instanceof ApiError ? ((error.data as DataPumpResult | null) ?? null) : null);
       } finally {
         this.lastRun = {
@@ -109,7 +109,7 @@ export class DataPumpPage {
       const response = await firstValueFrom(this.api.readLog(this.lastRun.directory, this.lastRun.logFile));
       this.logLines.set(response.data ?? []);
     } catch (error) {
-      this.logError.set(error instanceof ApiError ? error.message : 'Unexpected error');
+      this.logError.set(error instanceof ApiError ? error.message : 'Error inesperado');
     }
   }
 

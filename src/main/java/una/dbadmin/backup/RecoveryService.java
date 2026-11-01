@@ -45,20 +45,20 @@ public class RecoveryService {
                 String table = OracleIdentifiers.requireValid(request.table());
                 if (catalog.tableExists(schema, table)) {
                     throw new IllegalArgumentException(
-                            "Table " + schema + "." + table + " already exists; drop it before recovering it");
+                            "La tabla " + schema + "." + table + " ya existe; elimínela antes de recuperarla");
                 }
             }
             case SCHEMA -> {
                 String schema = OracleIdentifiers.requireValid(request.schema());
                 if (catalog.userExists(schema)) {
                     throw new IllegalArgumentException(
-                            "Schema " + schema + " already exists; drop the user before recovering it");
+                            "El esquema " + schema + " ya existe; elimine el usuario antes de recuperarlo");
                 }
             }
             case FULL -> {
                 if (!request.confirmFull()) {
-                    throw new IllegalArgumentException("Full recovery overwrites the whole database. "
-                            + "Send confirmFull=true to run it");
+                    throw new IllegalArgumentException("Una recuperación completa sobrescribe toda la base de datos. "
+                            + "Envíe confirmFull=true para ejecutarla");
                 }
             }
         }

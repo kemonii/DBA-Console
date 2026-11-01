@@ -10,9 +10,9 @@ describe('Backup', () => {
     await fixture.whenStable();
     const root = fixture.nativeElement as HTMLElement;
 
-    expect(root.querySelector('h1')?.textContent).toContain('Backup & Recovery');
+    expect(root.querySelector('h1')?.textContent).toContain('Respaldos y recuperación');
     const links = Array.from(root.querySelectorAll('nav a')).map((a) => a.textContent?.trim());
-    expect(links).toEqual(['Backup', 'Recovery', 'Flashback']);
+    expect(links).toEqual(['Respaldo', 'Recuperación', 'Flashback']);
   });
 
   it('has a place for the routed screens', async () => {

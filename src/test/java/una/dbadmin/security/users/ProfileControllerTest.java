@@ -73,6 +73,6 @@ class ProfileControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"p\",\"limits\":{\"COMPOSITE_LIMIT\":\"5\"}}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Unknown profile limit: COMPOSITE_LIMIT"));
+                .andExpect(jsonPath("$.message").value("Límite de perfil desconocido: COMPOSITE_LIMIT"));
     }
 }

@@ -94,13 +94,13 @@ public class TablespaceService {
     public String create(String name, String fileName, Integer sizeMb, Integer nextMb, Integer maxSizeMb) {
         String tablespace = OracleIdentifiers.requireValid(name);
         String path = datafilePath(fileName);
-        int size = requireSize(sizeMb, "Initial size");
-        int next = requireSize(nextMb, "Autoextend increment");
+        int size = requireSize(sizeMb, "El tamaño inicial");
+        int next = requireSize(nextMb, "El incremento de autoextensión");
         String maxSize = "UNLIMITED";
         if (maxSizeMb != null) {
-            int max = requireSize(maxSizeMb, "Maximum size");
+            int max = requireSize(maxSizeMb, "El tamaño máximo");
             if (max < size) {
-                throw new IllegalArgumentException("Maximum size must be at least the initial size");
+                throw new IllegalArgumentException("El tamaño máximo debe ser al menos el tamaño inicial");
             }
             maxSize = max + "M";
         }
@@ -125,10 +125,10 @@ public class TablespaceService {
      */
     public void resizeDatafile(String tablespaceName, int fileId, Integer sizeMb) {
         String tablespace = OracleIdentifiers.requireValid(tablespaceName);
-        int size = requireSize(sizeMb, "New size");
+        int size = requireSize(sizeMb, "El nuevo tamaño");
         List<String> paths = jdbcTemplate.queryForList(DATAFILE_PATH_QUERY, String.class, fileId, tablespace);
         if (paths.isEmpty()) {
-            throw new IllegalArgumentException("Datafile " + fileId + " does not belong to tablespace " + tablespace);
+            throw new IllegalArgumentException("El datafile " + fileId + " no pertenece al tablespace " + tablespace);
         }
         String path = requireQuotable(paths.get(0));
         jdbcTemplate.execute("ALTER DATABASE DATAFILE '" + path + "' RESIZE " + size + "M");
@@ -143,11 +143,11 @@ public class TablespaceService {
     public void drop(String name, boolean confirm) {
         String tablespace = OracleIdentifiers.requireValid(name);
         if (PROTECTED.contains(tablespace)) {
-            throw new IllegalArgumentException("Tablespace " + tablespace + " cannot be dropped");
+            throw new IllegalArgumentException("El tablespace " + tablespace + " no se puede eliminar");
         }
         if (!confirm) {
-            throw new IllegalArgumentException("Dropping a tablespace deletes its objects and datafiles. "
-                    + "Send confirm=true to drop it");
+            throw new IllegalArgumentException("Eliminar un tablespace borra sus objetos y datafiles. "
+                    + "Envíe confirm=true para eliminarlo");
         }
         jdbcTemplate.execute("DROP TABLESPACE " + tablespace + " INCLUDING CONTENTS AND DATAFILES");
     }
@@ -155,31 +155,31 @@ public class TablespaceService {
     private String datafilePath(String fileName) {
         if (fileName == null || !DATAFILE_NAME.matcher(fileName).matches()) {
             throw new IllegalArgumentException(
-                    "Datafile name must be a plain file name ending in .dbf, for example ventas01.dbf");
+                    "El nombre del datafile debe ser un nombre simple que termine en .dbf, por ejemplo ventas01.dbf");
         }
         if (datafileDir == null || datafileDir.isBlank()) {
-            throw new IllegalStateException("DATAFILE_DIR is not configured");
+            throw new IllegalStateException("DATAFILE_DIR no está configurado");
         }
         try {
             return requireQuotable(Path.of(datafileDir).resolve(fileName).toString());
         } catch (InvalidPathException ex) {
-            throw new IllegalStateException("DATAFILE_DIR is not a valid path: " + datafileDir, ex);
+            throw new IllegalStateException("DATAFILE_DIR no es una ruta válida: " + datafileDir, ex);
         }
     }
 
     private static String requireQuotable(String path) {
         if (path.indexOf('\'') >= 0 || path.chars().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException("Datafile path contains invalid characters");
+            throw new IllegalArgumentException("La ruta del datafile contiene caracteres no válidos");
         }
         return path;
     }
 
     private static int requireSize(Integer megabytes, String label) {
         if (megabytes == null) {
-            throw new IllegalArgumentException(label + " is required");
+            throw new IllegalArgumentException(label + " es obligatorio");
         }
         if (megabytes < 1 || megabytes > MAX_SIZE_MB) {
-            throw new IllegalArgumentException(label + " must be between 1 and " + MAX_SIZE_MB + " MB");
+            throw new IllegalArgumentException(label + " debe estar entre 1 y " + MAX_SIZE_MB + " MB");
         }
         return megabytes;
     }

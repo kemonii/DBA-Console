@@ -21,15 +21,15 @@ describe('App', () => {
       (fixture.nativeElement as HTMLElement).querySelectorAll('nav a'),
       (a) => a.textContent?.trim(),
     );
-    expect(links).toEqual(['Backup', 'Tuning', 'Security', 'Files', 'Example']);
+    expect(links).toEqual(['Respaldos', 'Tunning', 'Seguridad', 'Archivos', 'Ejemplo']);
   });
 
   it.each([
-    ['/backup', 'Backup & Recovery'],
-    ['/tuning', 'Query Tuning & Performance'],
-    ['/security', 'Security'],
-    ['/files', 'File Management'],
-    ['/example', 'Example screen'],
+    ['/backup', 'Respaldos y recuperación'],
+    ['/tuning', 'Tunning de consultas y performance'],
+    ['/security', 'Seguridad'],
+    ['/files', 'Administración de archivos'],
+    ['/example', 'Pantalla de ejemplo'],
   ])('opens %s', async (url, heading) => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl(url);

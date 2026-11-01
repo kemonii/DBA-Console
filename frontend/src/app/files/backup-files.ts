@@ -147,5 +147,5 @@ export class BackupFiles {
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Unexpected error';
+  return error instanceof ApiError ? error.message : 'Error inesperado';
 }

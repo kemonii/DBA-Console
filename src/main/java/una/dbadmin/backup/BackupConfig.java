@@ -49,7 +49,7 @@ public class BackupConfig {
     /** Converts {@code jdbc:oracle:thin:@//host:port/service} into the {@code //host:port/service} form expdp expects. */
     static String connectIdentifier(String jdbcUrl) {
         if (jdbcUrl == null || !jdbcUrl.startsWith(THIN_PREFIX)) {
-            throw new IllegalArgumentException("Unsupported database URL; expected " + THIN_PREFIX + "//host:port/service");
+            throw new IllegalArgumentException("URL de base de datos no soportada; se esperaba " + THIN_PREFIX + "//host:port/service");
         }
         return jdbcUrl.substring(THIN_PREFIX.length());
     }

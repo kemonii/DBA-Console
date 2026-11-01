@@ -44,27 +44,27 @@ public class ProfileController {
     @GetMapping
     @Operation(summary = "List profiles and their limits (DBA_PROFILES)")
     public OperationResult list() {
-        return OperationResult.ok("Profiles listed", profileService.list());
+        return OperationResult.ok("Perfiles listados", profileService.list());
     }
 
     @PostMapping
     @Operation(summary = "Create a profile")
     public OperationResult create(@RequestBody CreateProfileRequest request) {
         String name = profileService.create(request.name(), request.limits());
-        return OperationResult.ok("Profile " + name + " created", name);
+        return OperationResult.ok("Perfil " + name + " creado", name);
     }
 
     @PutMapping("/{name}")
     @Operation(summary = "Change limits of a profile (ALTER PROFILE)")
     public OperationResult alter(@PathVariable String name, @RequestBody AlterProfileRequest request) {
         profileService.alter(name, request.limits());
-        return OperationResult.ok("Profile changed", null);
+        return OperationResult.ok("Perfil modificado", null);
     }
 
     @DeleteMapping("/{name}")
     @Operation(summary = "Drop a profile; its users get the DEFAULT profile")
     public OperationResult drop(@PathVariable String name) {
         profileService.drop(name);
-        return OperationResult.ok("Profile dropped", null);
+        return OperationResult.ok("Perfil eliminado", null);
     }
 }

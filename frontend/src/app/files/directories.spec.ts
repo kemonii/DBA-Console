@@ -93,7 +93,7 @@ describe('Directories', () => {
     await click('#create-submit');
 
     http.expectNone((r) => r.method === 'POST');
-    expect(q('.error').textContent).toContain('Enter a directory name');
+    expect(q('.error').textContent).toContain('Ingrese un nombre de directorio');
   });
 
   it('asks for confirmation before dropping a directory', async () => {

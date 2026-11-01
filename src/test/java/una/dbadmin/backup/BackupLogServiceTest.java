@@ -63,7 +63,7 @@ class BackupLogServiceTest {
         IllegalArgumentException error =
                 assertThrows(IllegalArgumentException.class, () -> service.read("respaldo", "missing.log"));
 
-        assertEquals("Log file missing.log not found in directory RESPALDO", error.getMessage());
+        assertEquals("No se encontró el archivo de log missing.log en el directorio RESPALDO", error.getMessage());
     }
 
     @Test
@@ -73,7 +73,7 @@ class BackupLogServiceTest {
         IllegalArgumentException error =
                 assertThrows(IllegalArgumentException.class, () -> service.read("nope", "emp.log"));
 
-        assertEquals("Directory NOPE does not exist", error.getMessage());
+        assertEquals("El directorio NOPE no existe", error.getMessage());
     }
 
     @Test

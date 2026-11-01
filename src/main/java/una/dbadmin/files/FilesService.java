@@ -102,7 +102,7 @@ public class FilesService {
     /** Returns the beginning of a {@code .log} file, limited to {@link #MAX_LOG_LINES} lines and {@link #MAX_LOG_CHARS} characters. */
     public LogContent readLog(String directoryName, String fileName) {
         if (!BackupFileNames.isLog(BackupFileNames.requireValid(fileName))) {
-            throw new IllegalArgumentException("Only .log files can be viewed");
+            throw new IllegalArgumentException("Solo se pueden ver archivos .log");
         }
         Path file = resolveFile(resolveDirectory(directoryName), fileName);
         StringBuilder text = new StringBuilder();
@@ -135,7 +135,7 @@ public class FilesService {
      */
     public void deleteFile(String directoryName, String fileName, boolean confirm) {
         if (!confirm) {
-            throw new IllegalArgumentException("Deleting a file requires confirmation (confirm=true)");
+            throw new IllegalArgumentException("Eliminar un archivo requiere confirmación (confirm=true)");
         }
         BackupFileNames.requireValid(fileName);
         Path file = resolveFile(resolveDirectory(directoryName), fileName);
@@ -154,17 +154,17 @@ public class FilesService {
         List<String> paths = jdbcTemplate.queryForList(
                 "SELECT directory_path FROM dba_directories WHERE directory_name = ?", String.class, directory);
         if (paths.isEmpty()) {
-            throw new IllegalArgumentException("Directory object not found: " + directory);
+            throw new IllegalArgumentException("No se encontró el objeto directorio: " + directory);
         }
         try {
             Path base = Path.of(paths.get(0)).toRealPath();
             if (!Files.isDirectory(base)) {
-                throw new IllegalArgumentException("Directory path is not a directory: " + paths.get(0));
+                throw new IllegalArgumentException("La ruta del directorio no es un directorio: " + paths.get(0));
             }
             return base;
         } catch (NoSuchFileException | InvalidPathException ex) {
             throw new IllegalArgumentException(
-                    "Directory path does not exist on this host: " + paths.get(0));
+                    "La ruta del directorio no existe en este servidor: " + paths.get(0));
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
@@ -177,22 +177,22 @@ public class FilesService {
     private static Path resolveFile(Path base, String fileName) {
         Path candidate = base.resolve(BackupFileNames.requireValid(fileName)).normalize();
         if (!base.equals(candidate.getParent())) {
-            throw new IllegalArgumentException("File name is outside the directory");
+            throw new IllegalArgumentException("El nombre del archivo está fuera del directorio");
         }
         if (!Files.exists(candidate, LinkOption.NOFOLLOW_LINKS)) {
-            throw new IllegalArgumentException("File not found: " + fileName);
+            throw new IllegalArgumentException("No se encontró el archivo: " + fileName);
         }
         try {
             Path real = candidate.toRealPath();
             if (!real.startsWith(base)) {
-                throw new IllegalArgumentException("File name is outside the directory");
+                throw new IllegalArgumentException("El nombre del archivo está fuera del directorio");
             }
             if (!Files.isRegularFile(real)) {
-                throw new IllegalArgumentException("Not a regular file: " + fileName);
+                throw new IllegalArgumentException("No es un archivo regular: " + fileName);
             }
             return candidate;
         } catch (NoSuchFileException ex) {
-            throw new IllegalArgumentException("File not found: " + fileName);
+            throw new IllegalArgumentException("No se encontró el archivo: " + fileName);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
@@ -218,13 +218,13 @@ public class FilesService {
 
     private static String requireSafePath(String path) {
         if (path == null || path.isBlank()) {
-            throw new IllegalArgumentException("Directory path is required");
+            throw new IllegalArgumentException("La ruta del directorio es obligatoria");
         }
         if (path.length() > MAX_PATH_LENGTH) {
-            throw new IllegalArgumentException("Directory path is too long");
+            throw new IllegalArgumentException("La ruta del directorio es demasiado larga");
         }
         if (path.indexOf('\'') >= 0 || path.chars().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException("Directory path contains invalid characters");
+            throw new IllegalArgumentException("La ruta del directorio contiene caracteres no válidos");
         }
         return path;
     }

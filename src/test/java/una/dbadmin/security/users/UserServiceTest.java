@@ -192,6 +192,6 @@ class UserServiceTest {
 
         IllegalArgumentException ex =
                 assertThrows(IllegalArgumentException.class, () -> service.drop("nadie", false, true));
-        assertEquals("User NADIE does not exist", ex.getMessage());
+        assertEquals("El usuario NADIE no existe", ex.getMessage());
     }
 }

@@ -66,7 +66,7 @@ class AuditControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"whenever\":\"NOT_SUCCESSFUL\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Session auditing enabled"));
+                .andExpect(jsonPath("$.message").value("Auditoría de sesiones activada"));
         mvc.perform(delete("/api/security/auditing/session"))
                 .andExpect(status().isOk());
 
@@ -81,7 +81,7 @@ class AuditControllerTest {
                         .content("""
                                 {"owner":"HR","table":"JOBS","actions":["INSERT","UPDATE","DELETE"],"byAccess":true}"""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Table auditing enabled"));
+                .andExpect(jsonPath("$.message").value("Auditoría de la tabla activada"));
         mvc.perform(delete("/api/security/auditing/tables")
                         .param("owner", "HR")
                         .param("table", "JOBS")
@@ -98,7 +98,7 @@ class AuditControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"owner\":\"HR\",\"table\":\"JOBS\",\"actions\":[\"TRUNCATE\"]}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Unknown table action: TRUNCATE"));
+                .andExpect(jsonPath("$.message").value("Acción de tabla desconocida: TRUNCATE"));
     }
 
     @Test

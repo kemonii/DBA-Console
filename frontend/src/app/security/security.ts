@@ -10,13 +10,13 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   selector: 'app-security',
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
   template: `
-    <h1>Security</h1>
-    <nav class="subnav" aria-label="Security">
+    <h1>Seguridad</h1>
+    <nav class="subnav" aria-label="Seguridad">
       <a routerLink="/security/tablespaces" routerLinkActive="active">Tablespaces</a>
-      <a routerLink="/security/users" routerLinkActive="active">Users</a>
-      <a routerLink="/security/privileges" routerLinkActive="active">Roles &amp; privileges</a>
-      <a routerLink="/security/profiles" routerLinkActive="active">Profiles</a>
-      <a routerLink="/security/auditing" routerLinkActive="active">Auditing</a>
+      <a routerLink="/security/users" routerLinkActive="active">Usuarios</a>
+      <a routerLink="/security/privileges" routerLinkActive="active">Roles y privilegios</a>
+      <a routerLink="/security/profiles" routerLinkActive="active">Perfiles</a>
+      <a routerLink="/security/auditing" routerLinkActive="active">Auditoría</a>
     </nav>
     <router-outlet />
   `,

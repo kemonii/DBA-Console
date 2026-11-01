@@ -48,18 +48,20 @@ export class Users {
 
   protected readonly createModel = signal({ ...EMPTY_USER });
   protected readonly createForm = form(this.createModel, (schema) => {
-    required(schema.username, { message: 'Enter a user name' });
-    required(schema.password, { message: 'Enter a password' });
-    pattern(schema.password, /^[^"]*$/, { message: 'The password cannot contain double quotes' });
+    required(schema.username, { message: 'Ingrese un nombre de usuario' });
+    required(schema.password, { message: 'Ingrese una contraseña' });
+    pattern(schema.password, /^[^"]*$/, {
+      message: 'La contraseña no puede contener comillas dobles',
+    });
     required(schema.defaultTablespace, {
-      message: 'A quota needs a default tablespace',
+      message: 'Una cuota necesita un tablespace por defecto',
       when: ({ valueOf }) => valueOf(schema.quotaMode) !== 'none',
     });
     required(schema.quotaMb, {
-      message: 'Enter the quota',
+      message: 'Ingrese la cuota',
       when: ({ valueOf }) => valueOf(schema.quotaMode) === 'limited',
     });
-    pattern(schema.quotaMb, /^([1-9]\d*)?$/, { message: 'Use a whole number of MB' });
+    pattern(schema.quotaMb, /^([1-9]\d*)?$/, { message: 'Use un número entero de MB' });
   });
 
   constructor() {
@@ -163,5 +165,5 @@ export class Users {
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Unexpected error';
+  return error instanceof ApiError ? error.message : 'Error inesperado';
 }

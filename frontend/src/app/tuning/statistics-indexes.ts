@@ -115,7 +115,7 @@ export class StatisticsIndexes {
       this.statistics.set(stats.data ?? []);
       this.indexes.set(indexes.data ?? []);
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Unexpected error');
+      this.error.set(error instanceof Error ? error.message : 'Error inesperado');
     } finally {
       this.busy.set(false);
     }
@@ -133,7 +133,7 @@ export class StatisticsIndexes {
       accept?.(result);
       return true;
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'Unexpected error');
+      this.error.set(error instanceof Error ? error.message : 'Error inesperado');
       return false;
     } finally {
       this.busy.set(false);

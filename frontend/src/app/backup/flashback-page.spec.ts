@@ -121,7 +121,7 @@ describe('FlashbackPage', () => {
     http.expectOne('/api/flashback/query').flush({ ok: true, message: 'Rows as of ...', data: [] });
     await settle();
 
-    expect(root.querySelector('.rows-result')?.textContent).toContain('No rows');
+    expect(root.querySelector('.rows-result')?.textContent).toContain('No había filas');
   });
 
   it('restores the missing rows and reports how many', async () => {
@@ -144,7 +144,7 @@ describe('FlashbackPage', () => {
 
     http.expectNone('/api/flashback/query');
     http.expectNone('/api/flashback/table');
-    expect(root.querySelector('.rows .error')?.textContent).toContain('required');
-    expect(root.querySelector('.restore-table .error')?.textContent).toContain('required');
+    expect(root.querySelector('.rows .error')?.textContent).toContain('obligatori');
+    expect(root.querySelector('.restore-table .error')?.textContent).toContain('obligatori');
   });
 });

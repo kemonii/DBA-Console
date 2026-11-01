@@ -68,7 +68,7 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         OperationResult body = assertBody(response);
         assertFalse(body.ok());
-        assertEquals("Database error: Connection refused", body.message());
+        assertEquals("Error de base de datos: Connection refused", body.message());
     }
 
     @Test
@@ -89,7 +89,7 @@ class GlobalExceptionHandlerTest {
                 handler.handleUncheckedIo(new UncheckedIOException(new IOException("disk error")));
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("File system error: disk error", assertBody(response).message());
+        assertEquals("Error del sistema de archivos: disk error", assertBody(response).message());
     }
 
     @Test

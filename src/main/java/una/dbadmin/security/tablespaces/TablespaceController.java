@@ -47,7 +47,7 @@ public class TablespaceController {
     @GetMapping
     @Operation(summary = "List tablespaces with their size, used and free space")
     public OperationResult list() {
-        return OperationResult.ok("Tablespaces listed", tablespaceService.listUsage());
+        return OperationResult.ok("Tablespaces listados", tablespaceService.listUsage());
     }
 
     @PostMapping
@@ -55,27 +55,27 @@ public class TablespaceController {
     public OperationResult create(@RequestBody CreateTablespaceRequest request) {
         String name = tablespaceService.create(
                 request.name(), request.fileName(), request.sizeMb(), request.nextMb(), request.maxSizeMb());
-        return OperationResult.ok("Tablespace " + name + " created", name);
+        return OperationResult.ok("Tablespace " + name + " creado", name);
     }
 
     @DeleteMapping("/{name}")
     @Operation(summary = "Drop a tablespace including its contents and datafiles", description = "Requires confirm=true.")
     public OperationResult drop(@PathVariable String name, @RequestParam(defaultValue = "false") boolean confirm) {
         tablespaceService.drop(name, confirm);
-        return OperationResult.ok("Tablespace dropped", null);
+        return OperationResult.ok("Tablespace eliminado", null);
     }
 
     @GetMapping("/{name}/datafiles")
     @Operation(summary = "List the datafiles of a tablespace")
     public OperationResult listDatafiles(@PathVariable String name) {
-        return OperationResult.ok("Datafiles listed", tablespaceService.listDatafiles(name));
+        return OperationResult.ok("Datafiles listados", tablespaceService.listDatafiles(name));
     }
 
     @PostMapping("/{name}/datafiles")
     @Operation(summary = "Add a datafile in DATAFILE_DIR to a tablespace")
     public OperationResult addDatafile(@PathVariable String name, @RequestBody AddDatafileRequest request) {
         tablespaceService.addDatafile(name, request.fileName(), request.sizeMb());
-        return OperationResult.ok("Datafile added", null);
+        return OperationResult.ok("Datafile agregado", null);
     }
 
     @PostMapping("/{name}/datafiles/{fileId}/resize")
@@ -83,6 +83,6 @@ public class TablespaceController {
     public OperationResult resizeDatafile(
             @PathVariable String name, @PathVariable int fileId, @RequestBody ResizeRequest request) {
         tablespaceService.resizeDatafile(name, fileId, request.sizeMb());
-        return OperationResult.ok("Datafile resized", null);
+        return OperationResult.ok("Datafile redimensionado", null);
     }
 }

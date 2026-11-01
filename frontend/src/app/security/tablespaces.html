@@ -12,20 +12,20 @@
 @if (listError()) {
   <p class="error" role="alert">{{ listError() }}</p>
 } @else if (!loaded()) {
-  <p>Loading...</p>
+  <p>Cargando...</p>
 } @else {
   <table>
     <caption class="visually-hidden">
-      Tablespaces and their space usage
+      Tablespaces y su uso de espacio
     </caption>
     <thead>
       <tr>
-        <th scope="col">Name</th>
+        <th scope="col">Nombre</th>
         <th scope="col" class="number">Total (MB)</th>
-        <th scope="col" class="number">Used (MB)</th>
-        <th scope="col" class="number">Free (MB)</th>
-        <th scope="col">Used</th>
-        <th scope="col">Actions</th>
+        <th scope="col" class="number">Usado (MB)</th>
+        <th scope="col" class="number">Libre (MB)</th>
+        <th scope="col">Uso</th>
+        <th scope="col">Acciones</th>
       </tr>
     </thead>
     <tbody>
@@ -55,7 +55,7 @@
               [disabled]="busy()"
               (click)="askDrop(tablespace.name)"
             >
-              Drop
+              Eliminar
             </button>
           </td>
         </tr>
@@ -63,33 +63,33 @@
     </tbody>
   </table>
   <p class="hint">
-    Free space is measured inside the allocated size; autoextensible datafiles can still grow.
-    Temporary tablespaces are not listed.
+    El espacio libre se mide dentro del tamaño asignado; los datafiles autoextensibles aún pueden
+    crecer. Los tablespaces temporales no se muestran.
   </p>
 }
 
 @if (pendingDrop()) {
-  <div class="confirm" role="alertdialog" aria-label="Confirm drop">
+  <div class="confirm" role="alertdialog" aria-label="Confirmar eliminación">
     <p>
-      Drop tablespace <strong>{{ pendingDrop() }}</strong
-      >? Every table, index and other object stored in it is deleted, and its datafiles are removed
-      from disk. This cannot be undone.
+      ¿Eliminar el tablespace <strong>{{ pendingDrop() }}</strong
+      >? Se borran todas las tablas, índices y demás objetos que contiene, y sus datafiles se
+      eliminan del disco. Esta acción no se puede deshacer.
     </p>
     <button type="button" class="danger" data-action="confirm" (click)="confirmDrop()">
-      Drop tablespace
+      Eliminar tablespace
     </button>
-    <button type="button" data-action="cancel" (click)="cancelDrop()">Cancel</button>
+    <button type="button" data-action="cancel" (click)="cancelDrop()">Cancelar</button>
   </div>
 }
 
 @if (selected()) {
-  <h2>Datafiles of {{ selected() }}</h2>
+  <h2>Datafiles de {{ selected() }}</h2>
   @if (datafilesError()) {
     <p class="error" role="alert">{{ datafilesError() }}</p>
   } @else {
     <table class="datafiles">
       <caption class="visually-hidden">
-        Datafiles of
+        Datafiles de
         {{
           selected()
         }}
@@ -97,8 +97,8 @@
       <thead>
         <tr>
           <th scope="col">ID</th>
-          <th scope="col">File</th>
-          <th scope="col" class="number">Size (MB)</th>
+          <th scope="col">Archivo</th>
+          <th scope="col" class="number">Tamaño (MB)</th>
           <th scope="col">Autoextend</th>
         </tr>
       </thead>
@@ -110,7 +110,7 @@
             <td class="number">{{ datafile.sizeMb }}</td>
             <td>
               @if (datafile.autoextensible) {
-                Yes, up to {{ datafile.maxSizeMb }} MB
+                Sí, hasta {{ datafile.maxSizeMb }} MB
               } @else {
                 No
               }
@@ -122,11 +122,11 @@
 
     <div class="forms">
       <form (submit)="onResize($event)" novalidate>
-        <h3>Resize a datafile</h3>
+        <h3>Redimensionar un datafile</h3>
         <div class="field">
           <label for="resize-file">Datafile</label>
           <select id="resize-file" [formField]="resizeForm.fileId">
-            <option value="">Select a datafile</option>
+            <option value="">Seleccione un datafile</option>
             @for (datafile of datafiles(); track datafile.fileId) {
               <option [value]="datafile.fileId">
                 {{ datafile.fileId }} ({{ datafile.sizeMb }} MB)
@@ -138,19 +138,19 @@
           }
         </div>
         <div class="field">
-          <label for="resize-size">New size (MB)</label>
+          <label for="resize-size">Nuevo tamaño (MB)</label>
           <input id="resize-size" type="text" inputmode="numeric" [formField]="resizeForm.sizeMb" />
           @if (resizeForm.sizeMb().touched() && resizeForm.sizeMb().errors().length) {
             <p class="error" role="alert">{{ resizeForm.sizeMb().errors()[0].message }}</p>
           }
         </div>
-        <button id="resize-submit" type="submit" [disabled]="busy()">Resize</button>
+        <button id="resize-submit" type="submit" [disabled]="busy()">Redimensionar</button>
       </form>
 
       <form (submit)="onAddDatafile($event)" novalidate>
-        <h3>Add a datafile</h3>
+        <h3>Agregar un datafile</h3>
         <div class="field">
-          <label for="add-file">File name</label>
+          <label for="add-file">Nombre del archivo</label>
           <input
             id="add-file"
             type="text"
@@ -162,32 +162,32 @@
           }
         </div>
         <div class="field">
-          <label for="add-size">Size (MB)</label>
+          <label for="add-size">Tamaño (MB)</label>
           <input id="add-size" type="text" inputmode="numeric" [formField]="addForm.sizeMb" />
           @if (addForm.sizeMb().touched() && addForm.sizeMb().errors().length) {
             <p class="error" role="alert">{{ addForm.sizeMb().errors()[0].message }}</p>
           }
         </div>
-        <button id="add-submit" type="submit" [disabled]="busy()">Add datafile</button>
+        <button id="add-submit" type="submit" [disabled]="busy()">Agregar datafile</button>
       </form>
     </div>
   }
 }
 
-<h2>Create a tablespace</h2>
+<h2>Crear un tablespace</h2>
 <p class="hint">
-  The datafile is created in the server's <code>DATAFILE_DIR</code> and grows automatically.
+  El datafile se crea en el <code>DATAFILE_DIR</code> del servidor y crece automáticamente.
 </p>
 <form (submit)="onCreate($event)" novalidate>
   <div class="field">
-    <label for="create-name">Name</label>
+    <label for="create-name">Nombre</label>
     <input id="create-name" type="text" [formField]="createForm.name" />
     @if (createForm.name().touched() && createForm.name().errors().length) {
       <p class="error" role="alert">{{ createForm.name().errors()[0].message }}</p>
     }
   </div>
   <div class="field">
-    <label for="create-file">Datafile name</label>
+    <label for="create-file">Nombre del datafile</label>
     <input
       id="create-file"
       type="text"
@@ -200,26 +200,26 @@
   </div>
   <div class="row">
     <div class="field">
-      <label for="create-size">Initial size (MB)</label>
+      <label for="create-size">Tamaño inicial (MB)</label>
       <input id="create-size" type="text" inputmode="numeric" [formField]="createForm.sizeMb" />
       @if (createForm.sizeMb().touched() && createForm.sizeMb().errors().length) {
         <p class="error" role="alert">{{ createForm.sizeMb().errors()[0].message }}</p>
       }
     </div>
     <div class="field">
-      <label for="create-next">Autoextend by (MB)</label>
+      <label for="create-next">Autoextender en (MB)</label>
       <input id="create-next" type="text" inputmode="numeric" [formField]="createForm.nextMb" />
       @if (createForm.nextMb().touched() && createForm.nextMb().errors().length) {
         <p class="error" role="alert">{{ createForm.nextMb().errors()[0].message }}</p>
       }
     </div>
     <div class="field">
-      <label for="create-max">Maximum size (MB)</label>
+      <label for="create-max">Tamaño máximo (MB)</label>
       <input
         id="create-max"
         type="text"
         inputmode="numeric"
-        placeholder="Unlimited"
+        placeholder="Ilimitado"
         [formField]="createForm.maxSizeMb"
       />
       @if (createForm.maxSizeMb().touched() && createForm.maxSizeMb().errors().length) {
@@ -227,5 +227,5 @@
       }
     </div>
   </div>
-  <button id="create-submit" type="submit" [disabled]="busy()">Create</button>
+  <button id="create-submit" type="submit" [disabled]="busy()">Crear</button>
 </form>

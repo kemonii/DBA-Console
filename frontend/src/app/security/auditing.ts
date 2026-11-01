@@ -47,8 +47,8 @@ export class Auditing {
 
   protected readonly tableModel = signal({ owner: '', table: '', byAccess: true });
   protected readonly tableForm = form(this.tableModel, (schema) => {
-    required(schema.owner, { message: 'Enter the owner (schema) of the table' });
-    required(schema.table, { message: 'Enter the table name' });
+    required(schema.owner, { message: 'Ingrese el propietario (esquema) de la tabla' });
+    required(schema.table, { message: 'Ingrese el nombre de la tabla' });
   });
   protected readonly selectedActions = signal<string[]>(['INSERT', 'UPDATE', 'DELETE']);
 
@@ -58,7 +58,7 @@ export class Auditing {
     limit: '100',
   });
   protected readonly trailForm = form(this.trailModel, (schema) => {
-    pattern(schema.limit, /^([1-9]\d{0,2}|1000)$/, { message: 'Use a number from 1 to 1000' });
+    pattern(schema.limit, /^([1-9]\d{0,2}|1000)$/, { message: 'Use un número del 1 al 1000' });
   });
   /** View of the rows below, which stays as it was loaded even if the selector changes. */
   protected readonly shownView = signal<TrailView | null>(null);
@@ -107,7 +107,7 @@ export class Auditing {
       const { owner, table, byAccess } = this.tableModel();
       const actions = this.selectedActions();
       if (actions.length === 0) {
-        this.errorMessage.set('Select at least one action to audit');
+        this.errorMessage.set('Seleccione al menos una acción para auditar');
         return;
       }
       if (await this.run(() => this.auditingApi.auditTable(owner, table, actions, byAccess))) {
@@ -192,5 +192,5 @@ export class Auditing {
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Unexpected error';
+  return error instanceof ApiError ? error.message : 'Error inesperado';
 }

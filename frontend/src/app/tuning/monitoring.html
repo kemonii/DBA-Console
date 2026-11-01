@@ -1,7 +1,7 @@
-<h2>Performance monitoring</h2>
+<h2>Monitoreo del rendimiento</h2>
 <div class="row">
   <label for="monitor-view"
-    >View
+    >Vista
     <select id="monitor-view" [value]="selected()" [disabled]="busy()" (change)="select($event)">
       @for (view of views; track view.path) {
         <option [value]="view.path">{{ view.label }}</option>
@@ -9,7 +9,7 @@
     </select>
   </label>
   <button type="button" [disabled]="busy()" (click)="load()">
-    {{ busy() ? 'Loading...' : 'Refresh' }}
+    {{ busy() ? 'Cargando...' : 'Actualizar' }}
   </button>
 </div>
 @if (error()) {
@@ -23,23 +23,24 @@
   @if (selected() === 'locks') {
     @for (row of current; track $index) {
       <p>
-        Session {{ row['BLOCKER_SID'] }},{{ row['BLOCKER_SERIAL'] }} blocks {{ row['WAITING_SID'] }}
+        La sesión {{ row['BLOCKER_SID'] }},{{ row['BLOCKER_SERIAL'] }} bloquea a
+        {{ row['WAITING_SID'] }}
         <button type="button" class="danger" [disabled]="busy()" (click)="requestKill(row)">
-          Kill blocking session
+          Terminar sesión bloqueadora
         </button>
       </p>
     }
   }
 }
 @if (pendingKill(); as target) {
-  <section class="confirmation" aria-label="Confirm session termination">
+  <section class="confirmation" aria-label="Confirmar terminación de la sesión">
     <p>
-      Terminate session {{ target.sid }},{{ target.serial }}? Oracle will roll back its uncommitted
-      work.
+      ¿Terminar la sesión {{ target.sid }},{{ target.serial }}? Oracle revertirá el trabajo que no
+      se haya confirmado.
     </p>
     <button type="button" class="danger" [disabled]="busy()" (click)="kill()">
-      Confirm termination
+      Confirmar terminación
     </button>
-    <button type="button" [disabled]="busy()" (click)="pendingKill.set(null)">Cancel</button>
+    <button type="button" [disabled]="busy()" (click)="pendingKill.set(null)">Cancelar</button>
   </section>
 }

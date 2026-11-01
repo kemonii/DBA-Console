@@ -232,7 +232,7 @@ class FilesControllerTest {
         failingMvc.perform(get("/api/files/directories/BACKUPS/files"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.ok").value(false))
-                .andExpect(jsonPath("$.message").value("File system error: disk error"));
+                .andExpect(jsonPath("$.message").value("Error del sistema de archivos: disk error"));
     }
 
     private void directoryIsMappedTo(String name, Path path) {

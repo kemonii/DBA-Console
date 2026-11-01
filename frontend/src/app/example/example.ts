@@ -30,7 +30,7 @@ export class Example {
   // 1. Form model and validation. Use '' / 0 / [] as initial values, never null.
   protected readonly model = signal({ path: 'health' });
   protected readonly requestForm = form(this.model, (schema) => {
-    required(schema.path, { message: 'Enter an endpoint path' });
+    required(schema.path, { message: 'Ingrese una ruta de endpoint' });
   });
 
   // 3. Screen state.
@@ -50,7 +50,7 @@ export class Example {
         // 2. Call the backend. ApiClient adds the /api prefix and raises ApiError on failure.
         this.result.set(await firstValueFrom(this.api.get('/' + this.model().path)));
       } catch (error) {
-        this.errorMessage.set(error instanceof ApiError ? error.message : 'Unexpected error');
+        this.errorMessage.set(error instanceof ApiError ? error.message : 'Error inesperado');
       } finally {
         this.loading.set(false);
       }

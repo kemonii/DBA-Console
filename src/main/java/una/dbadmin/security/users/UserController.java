@@ -45,7 +45,7 @@ public class UserController {
     @GetMapping
     @Operation(summary = "List the users created by administrators (not maintained by Oracle)")
     public OperationResult list() {
-        return OperationResult.ok("Users listed", userService.list());
+        return OperationResult.ok("Usuarios listados", userService.list());
     }
 
     @PostMapping
@@ -53,28 +53,28 @@ public class UserController {
     public OperationResult create(@RequestBody CreateUserRequest request) {
         String name = userService.create(request.username(), request.password(), request.defaultTablespace(),
                 request.temporaryTablespace(), request.quotaMb(), request.unlimitedQuota());
-        return OperationResult.ok("User " + name + " created", name);
+        return OperationResult.ok("Usuario " + name + " creado", name);
     }
 
     @PostMapping("/{name}/lock")
     @Operation(summary = "Lock a user account")
     public OperationResult lock(@PathVariable String name) {
         userService.setLocked(name, true);
-        return OperationResult.ok("User locked", null);
+        return OperationResult.ok("Usuario bloqueado", null);
     }
 
     @PostMapping("/{name}/unlock")
     @Operation(summary = "Unlock a user account")
     public OperationResult unlock(@PathVariable String name) {
         userService.setLocked(name, false);
-        return OperationResult.ok("User unlocked", null);
+        return OperationResult.ok("Usuario desbloqueado", null);
     }
 
     @PutMapping("/{name}/profile")
     @Operation(summary = "Assign a profile to a user (ALTER USER ... PROFILE)")
     public OperationResult setProfile(@PathVariable String name, @RequestBody ProfileRequest request) {
         userService.setProfile(name, request.profile());
-        return OperationResult.ok("Profile assigned", null);
+        return OperationResult.ok("Perfil asignado", null);
     }
 
     @DeleteMapping("/{name}")
@@ -83,6 +83,6 @@ public class UserController {
                                 @RequestParam(defaultValue = "false") boolean cascade,
                                 @RequestParam(defaultValue = "false") boolean confirm) {
         userService.drop(name, cascade, confirm);
-        return OperationResult.ok("User dropped", null);
+        return OperationResult.ok("Usuario eliminado", null);
     }
 }

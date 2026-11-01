@@ -45,14 +45,14 @@ public class BackupLogService {
         List<String> paths = jdbcTemplate.queryForList(
                 "SELECT directory_path FROM dba_directories WHERE directory_name = ?", String.class, directoryName);
         if (paths.isEmpty()) {
-            throw new IllegalArgumentException("Directory " + directoryName + " does not exist");
+            throw new IllegalArgumentException("El directorio " + directoryName + " no existe");
         }
 
         Path base = Path.of(paths.get(0)).toAbsolutePath().normalize();
         Path file = base.resolve(validFileName).normalize();
         if (!file.startsWith(base) || !Files.isRegularFile(file)) {
             throw new IllegalArgumentException(
-                    "Log file " + validFileName + " not found in directory " + directoryName);
+                    "No se encontró el archivo de log " + validFileName + " en el directorio " + directoryName);
         }
         return tail(readLines(file));
     }
@@ -60,7 +60,7 @@ public class BackupLogService {
     /** The extension is compared in any case: logs created outside the application may end in {@code .LOG}. */
     private static String requireLogFileName(String fileName) {
         if (fileName == null || !fileName.toLowerCase(Locale.ROOT).endsWith(LOG_EXTENSION)) {
-            throw new IllegalArgumentException("Only " + LOG_EXTENSION + " files can be read");
+            throw new IllegalArgumentException("Solo se pueden leer archivos " + LOG_EXTENSION);
         }
         OracleIdentifiers.requireValid(fileName.substring(0, fileName.length() - LOG_EXTENSION.length()));
         return fileName;
@@ -70,7 +70,7 @@ public class BackupLogService {
         try {
             return new String(Files.readAllBytes(file), StandardCharsets.UTF_8).lines().toList();
         } catch (IOException e) {
-            throw new UncheckedIOException("Could not read " + file.getFileName(), e);
+            throw new UncheckedIOException("No se pudo leer " + file.getFileName(), e);
         }
     }
 

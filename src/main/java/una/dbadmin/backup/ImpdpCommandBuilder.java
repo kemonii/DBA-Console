@@ -21,7 +21,7 @@ public class ImpdpCommandBuilder {
     }
 
     public DataPumpCommand build(RecoveryRequest request) {
-        return DataPumpCommands.build("impdp", "recovery", "_imp.log",
+        return DataPumpCommands.build("impdp", "la recuperación", "_imp.log",
                 user + "/" + password + "@" + connectIdentifier, user + "/******@" + connectIdentifier,
                 request.type(), request.schema(), request.table(), request.directory(), request.fileName(),
                 List.of());

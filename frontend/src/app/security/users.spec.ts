@@ -139,7 +139,7 @@ describe('Users', () => {
     await click('#create-submit');
 
     http.expectNone((r) => r.method === 'POST');
-    expect(q('.error').textContent).toContain('A quota needs a default tablespace');
+    expect(q('.error').textContent).toContain('Una cuota necesita un tablespace por defecto');
   });
 
   it('rejects a password with double quotes before calling the backend', async () => {
@@ -150,7 +150,7 @@ describe('Users', () => {
     await click('#create-submit');
 
     http.expectNone((r) => r.method === 'POST');
-    expect(q('.error').textContent).toContain('cannot contain double quotes');
+    expect(q('.error').textContent).toContain('no puede contener comillas dobles');
   });
 
   it('locks an open user and unlocks a locked one', async () => {
@@ -161,7 +161,7 @@ describe('Users', () => {
     await settle();
     await loadUsers();
 
-    expect(q('[data-lock="VIEJO"]').textContent?.trim()).toBe('Unlock');
+    expect(q('[data-lock="VIEJO"]').textContent?.trim()).toBe('Desbloquear');
     await click('[data-lock="VIEJO"]');
     http.expectOne('/api/security/users/VIEJO/unlock').flush(OK);
     await settle();

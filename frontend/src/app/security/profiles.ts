@@ -54,7 +54,7 @@ export class Profiles {
   protected readonly editModel = signal({ target: '', name: '' });
   protected readonly editForm = form(this.editModel, (schema) => {
     required(schema.name, {
-      message: 'Enter a profile name',
+      message: 'Ingrese un nombre de perfil',
       when: ({ valueOf }) => valueOf(schema.target) === '',
     });
   });
@@ -62,8 +62,8 @@ export class Profiles {
 
   protected readonly assignModel = signal({ username: '', profile: '' });
   protected readonly assignForm = form(this.assignModel, (schema) => {
-    required(schema.username, { message: 'Select a user' });
-    required(schema.profile, { message: 'Select a profile' });
+    required(schema.username, { message: 'Seleccione un usuario' });
+    required(schema.profile, { message: 'Seleccione un perfil' });
   });
 
   constructor() {
@@ -90,13 +90,13 @@ export class Profiles {
           continue;
         }
         if (!LIMIT_VALUE.test(value)) {
-          this.errorMessage.set(`${resource} must be a whole number, UNLIMITED or DEFAULT`);
+          this.errorMessage.set(`${resource} debe ser un número entero, UNLIMITED o DEFAULT`);
           return;
         }
         limits[resource] = value.toUpperCase();
       }
       if (Object.keys(limits).length === 0) {
-        this.errorMessage.set('Set at least one limit');
+        this.errorMessage.set('Establezca al menos un límite');
         return;
       }
       const { target, name } = this.editModel();
@@ -174,5 +174,5 @@ export class Profiles {
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Unexpected error';
+  return error instanceof ApiError ? error.message : 'Error inesperado';
 }

@@ -146,7 +146,7 @@ public class AuditService {
         String user = username == null || username.isBlank() ? null : OracleIdentifiers.requireValid(username);
         int rows = limit == null ? DEFAULT_LIMIT : limit;
         if (rows < 1 || rows > MAX_LIMIT) {
-            throw new IllegalArgumentException("Limit must be between 1 and " + MAX_LIMIT);
+            throw new IllegalArgumentException("El límite debe estar entre 1 y " + MAX_LIMIT);
         }
         return jdbcTemplate.queryForList(sql, user, user, rows);
     }
@@ -161,7 +161,7 @@ public class AuditService {
 
     private static String requireActions(List<String> actions) {
         if (actions == null || actions.isEmpty()) {
-            throw new IllegalArgumentException("Select at least one action to audit");
+            throw new IllegalArgumentException("Seleccione al menos una acción para auditar");
         }
         List<String> valid = actions.stream()
                 .map(action -> action == null ? "" : action.trim().toUpperCase(Locale.ROOT))
@@ -169,7 +169,7 @@ public class AuditService {
                 .toList();
         for (String action : valid) {
             if (!TABLE_ACTIONS.contains(action)) {
-                throw new IllegalArgumentException("Unknown table action: " + action);
+                throw new IllegalArgumentException("Acción de tabla desconocida: " + action);
             }
         }
         return String.join(", ", valid);

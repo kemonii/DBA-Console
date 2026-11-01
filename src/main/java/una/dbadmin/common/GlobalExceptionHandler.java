@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<OperationResult> handleIllegalState(IllegalStateException ex) {
         log.error("Operation failed", ex);
-        String message = ex.getMessage() == null || ex.getMessage().isBlank() ? "Operation failed" : ex.getMessage();
+        String message = ex.getMessage() == null || ex.getMessage().isBlank() ? "La operación falló" : ex.getMessage();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(OperationResult.error(message));
     }
 
@@ -62,8 +62,8 @@ public class GlobalExceptionHandler {
         if (!onlyWrapsCause && ex.getMessage() != null && !ex.getMessage().isBlank()) {
             return ex.getMessage();
         }
-        String detail = cause != null && cause.getMessage() != null ? cause.getMessage() : "unknown error";
-        return "File system error: " + detail;
+        String detail = cause != null && cause.getMessage() != null ? cause.getMessage() : "error desconocido";
+        return "Error del sistema de archivos: " + detail;
     }
 
     /**
@@ -81,8 +81,8 @@ public class GlobalExceptionHandler {
         }
         String detail = ex.getMostSpecificCause().getMessage();
         if (detail == null || detail.isBlank()) {
-            return "Database error";
+            return "Error de base de datos";
         }
-        return "Database error: " + detail.lines().findFirst().orElse(detail).trim();
+        return "Error de base de datos: " + detail.lines().findFirst().orElse(detail).trim();
     }
 }

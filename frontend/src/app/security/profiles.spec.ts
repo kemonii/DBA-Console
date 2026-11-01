@@ -128,11 +128,11 @@ describe('Profiles', () => {
     await fill('#edit-name', 'SOPORTE');
 
     await click('#edit-submit');
-    expect(q('.error').textContent).toContain('Set at least one limit');
+    expect(q('.error').textContent).toContain('Establezca al menos un límite');
 
     await fill('#limit-IDLE_TIME', '20M');
     await click('#edit-submit');
-    expect(q('.error').textContent).toContain('IDLE_TIME must be a whole number');
+    expect(q('.error').textContent).toContain('IDLE_TIME debe ser un número entero');
 
     http.expectNone((r) => r.method !== 'GET');
   });

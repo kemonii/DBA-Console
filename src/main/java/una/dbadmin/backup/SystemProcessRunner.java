@@ -41,7 +41,7 @@ public class SystemProcessRunner implements ProcessRunner {
         try {
             process = new ProcessBuilder(args).redirectErrorStream(true).start();
         } catch (IOException e) {
-            throw new UncheckedIOException("Could not run " + program + "; check that it is installed and on the PATH", e);
+            throw new UncheckedIOException("No se pudo ejecutar " + program + "; verifique que esté instalado y en el PATH", e);
         }
 
         List<String> output = Collections.synchronizedList(new ArrayList<>());
@@ -53,13 +53,13 @@ public class SystemProcessRunner implements ProcessRunner {
             if (!process.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
                 process.destroyForcibly();
                 throw new IllegalStateException(
-                        program + " did not finish within " + describe(timeout) + " and was stopped");
+                        program + " no terminó en " + describe(timeout) + " y se detuvo");
             }
             reader.join(OUTPUT_GRACE_MILLIS);
         } catch (InterruptedException e) {
             process.destroyForcibly();
             Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted while running " + program, e);
+            throw new IllegalStateException("Se interrumpió mientras se ejecutaba " + program, e);
         }
         synchronized (output) {
             return new ProcessResult(process.exitValue(), List.copyOf(output));
@@ -79,6 +79,6 @@ public class SystemProcessRunner implements ProcessRunner {
     }
 
     private static String describe(Duration duration) {
-        return duration.toMinutes() >= 1 ? duration.toMinutes() + " minutes" : duration.toSeconds() + " seconds";
+        return duration.toMinutes() >= 1 ? duration.toMinutes() + " minutos" : duration.toSeconds() + " segundos";
     }
 }

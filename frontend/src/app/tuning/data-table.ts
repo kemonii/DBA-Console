@@ -32,7 +32,7 @@ import { DataRow } from './tuning.models';
         </table>
       </div>
     } @else {
-      <p>No rows found.</p>
+      <p>No se encontraron filas.</p>
     }
   `,
   styleUrl: './tuning.css',

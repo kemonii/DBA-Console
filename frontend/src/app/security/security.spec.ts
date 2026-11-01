@@ -36,7 +36,7 @@ describe('Security routes', () => {
 
     expect(TestBed.inject(Router).url).toBe('/security/tablespaces');
     expect((harness.fixture.nativeElement as HTMLElement).textContent).toContain(
-      'Create a tablespace',
+      'Crear un tablespace',
     );
   });
 
@@ -49,6 +49,12 @@ describe('Security routes', () => {
     const links = Array.from(
       (harness.fixture.nativeElement as HTMLElement).querySelectorAll('nav a'),
     ).map((a) => a.textContent?.trim());
-    expect(links).toEqual(['Tablespaces', 'Users', 'Roles & privileges', 'Profiles', 'Auditing']);
+    expect(links).toEqual([
+      'Tablespaces',
+      'Usuarios',
+      'Roles y privilegios',
+      'Perfiles',
+      'Auditoría',
+    ]);
   });
 });
