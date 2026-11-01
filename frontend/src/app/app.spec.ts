@@ -21,7 +21,7 @@ describe('App', () => {
       (fixture.nativeElement as HTMLElement).querySelectorAll('nav a'),
       (a) => a.textContent?.trim(),
     );
-    expect(links).toEqual(['Respaldos', 'Tunning', 'Seguridad', 'Archivos', 'Ejemplo']);
+    expect(links).toEqual(['Respaldos', 'Tunning', 'Seguridad', 'Archivos']);
   });
 
   it.each([

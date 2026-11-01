@@ -1,5 +1,11 @@
 <header class="header">
-  <span class="brand">DBA-Console</span>
+  <span class="brand">
+    <svg class="brand-mark" viewBox="0 0 56 38" aria-hidden="true">
+      <rect x="4" y="4" width="48" height="30" rx="15" fill="none" stroke="#e8472f" stroke-width="8" />
+      <path d="M18 19h20" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+    </svg>
+    DBA Console
+  </span>
   <app-connection-status />
 </header>
 
@@ -8,7 +14,6 @@
   <a routerLink="/tuning" routerLinkActive="active">Tunning</a>
   <a routerLink="/security" routerLinkActive="active">Seguridad</a>
   <a routerLink="/files" routerLinkActive="active">Archivos</a>
-  <a routerLink="/example" routerLinkActive="active">Ejemplo</a>
 </nav>
 
 <main class="content">
