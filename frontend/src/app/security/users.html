@@ -39,7 +39,11 @@
           <td>{{ user.temporaryTablespace }}</td>
           <td>{{ user.profile }}</td>
           <td class="actions">
-            <a [routerLink]="['/security/privileges']" [queryParams]="{ grantee: user.username }">
+            <a
+              class="button-link small"
+              [routerLink]="['/security/privileges']"
+              [queryParams]="{ grantee: user.username }"
+            >
               Privilegios
             </a>
             <button
