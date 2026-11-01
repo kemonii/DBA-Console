@@ -29,9 +29,11 @@
       @for (directory of directories(); track directory.name) {
         <tr>
           <td>{{ directory.name }}</td>
-          <td>{{ directory.path }}</td>
+          <td class="path">{{ directory.path }}</td>
           <td class="actions">
-            <a [routerLink]="['/files/directories', directory.name, 'files']">Archivos</a>
+            <a class="button-link" [routerLink]="['/files/directories', directory.name, 'files']">
+              Archivos
+            </a>
             <button
               type="button"
               class="danger"

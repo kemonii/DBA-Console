@@ -23,13 +23,22 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   styles: `
     .subnav {
       display: flex;
+      flex-wrap: wrap;
       gap: 1rem;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #d1d5db;
+    }
+
+    .subnav a {
+      padding: 0.5rem 0.25rem;
+      color: #1f2937;
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
     }
 
     .subnav a.active {
       font-weight: 600;
-      text-decoration: underline;
+      border-bottom-color: #1f2937;
     }
   `,
 })
