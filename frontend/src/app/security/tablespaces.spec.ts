@@ -4,8 +4,33 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Tablespaces } from './tablespaces';
 
 const TABLESPACES = [
-  { name: 'USERS', totalMb: 5, usedMb: 1.25, freeMb: 3.75, usedPercent: 25, freePercent: 75 },
-  { name: 'VENTAS', totalMb: 2, usedMb: 1.8, freeMb: 0.2, usedPercent: 90, freePercent: 10 },
+  {
+    name: 'USERS',
+    contents: 'PERMANENT',
+    totalMb: 5,
+    usedMb: 1.25,
+    freeMb: 3.75,
+    usedPercent: 25,
+    freePercent: 75,
+  },
+  {
+    name: 'VENTAS',
+    contents: 'PERMANENT',
+    totalMb: 2,
+    usedMb: 1.8,
+    freeMb: 0.2,
+    usedPercent: 90,
+    freePercent: 10,
+  },
+  {
+    name: 'TEMP',
+    contents: 'TEMPORARY',
+    totalMb: 20,
+    usedMb: 0,
+    freeMb: 20,
+    usedPercent: 0,
+    freePercent: 100,
+  },
 ];
 const DATAFILES = [
   {
@@ -70,11 +95,22 @@ describe('Tablespaces', () => {
     await loadTablespaces();
 
     const rows = root.querySelectorAll('tbody tr');
-    expect(rows.length).toBe(2);
+    expect(rows.length).toBe(3);
     expect(rows[0].textContent).toContain('USERS');
     expect(rows[0].textContent).toContain('3.75');
     expect(rows[1].textContent).toContain('90%');
     expect(rows[1].querySelector('meter')?.value).toBe(90);
+  });
+
+  it('shows the kind of each tablespace and no datafiles action for temporary ones', async () => {
+    await loadTablespaces();
+
+    const rows = root.querySelectorAll('tbody tr');
+    expect(rows[0].textContent).toContain('Permanente');
+    expect(rows[2].textContent).toContain('Temporal');
+    expect(root.querySelector('[data-select="USERS"]')).not.toBeNull();
+    expect(root.querySelector('[data-select="TEMP"]')).toBeNull();
+    expect(root.querySelector('[data-drop="TEMP"]')).not.toBeNull();
   });
 
   it('shows the backend message when listing fails', async () => {
@@ -115,6 +151,32 @@ describe('Tablespaces', () => {
 
     await loadTablespaces();
     expect(q('.success').textContent).toContain('Tablespace COMPRAS created');
+  });
+
+  it('creates a temporary tablespace', async () => {
+    await loadTablespaces();
+    await fill('#create-type', 'TEMPORARY');
+    await fill('#create-name', 'TEMPORAL');
+    await fill('#create-file', 'temporal.dbf');
+    await fill('#create-size', '25');
+    await fill('#create-next', '1');
+
+    await click('#create-submit');
+    const post = http.expectOne(
+      (r) => r.method === 'POST' && r.url === '/api/security/tablespaces',
+    );
+    expect(post.request.body).toEqual({
+      name: 'TEMPORAL',
+      fileName: 'temporal.dbf',
+      sizeMb: 25,
+      nextMb: 1,
+      temporary: true,
+    });
+    post.flush(OK);
+    await settle();
+    await loadTablespaces();
+
+    expect(q<HTMLSelectElement>('#create-type').value).toBe('PERMANENT');
   });
 
   it('leaves the maximum size out when it is empty', async () => {

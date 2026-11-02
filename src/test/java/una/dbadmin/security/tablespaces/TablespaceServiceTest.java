@@ -41,13 +41,14 @@ class TablespaceServiceTest {
     void listUsageMapsTheClassScriptColumns() {
         when(jdbc.queryForList(TablespaceService.USAGE_QUERY)).thenReturn(List.of(Map.of(
                 "TABLESPACE_NAME", "USERS",
+                "CONTENTS", "PERMANENT",
                 "TOTAL_MB", new BigDecimal("5"),
                 "USED_MB", new BigDecimal("1.25"),
                 "FREE_MB", new BigDecimal("3.75"),
                 "USED_PERCENT", new BigDecimal("25"),
                 "FREE_PERCENT", new BigDecimal("75"))));
 
-        assertEquals(List.of(new TablespaceUsage("USERS", 5, 1.25, 3.75, 25, 75)), service.listUsage());
+        assertEquals(List.of(new TablespaceUsage("USERS", "PERMANENT", 5, 1.25, 3.75, 25, 75)), service.listUsage());
     }
 
     @Test
@@ -86,6 +87,22 @@ class TablespaceServiceTest {
 
         verify(jdbc).execute("CREATE TABLESPACE VENTAS DATAFILE '" + inDatafileDir("ventas01.dbf")
                 + "' SIZE 2M AUTOEXTEND ON NEXT 1M MAXSIZE UNLIMITED");
+    }
+
+    @Test
+    void createTemporaryBuildsTheStatementFromClass() {
+        String name = service.createTemporary("temporal", "temporal.dbf", 25, 1, null);
+
+        assertEquals("TEMPORAL", name);
+        verify(jdbc).execute("CREATE TEMPORARY TABLESPACE TEMPORAL TEMPFILE '" + inDatafileDir("temporal.dbf")
+                + "' SIZE 25M AUTOEXTEND ON NEXT 1M MAXSIZE UNLIMITED");
+    }
+
+    @Test
+    void createTemporaryAcceptsOnlyPlainFileNames() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createTemporary("TEMPORAL", "../temporal.dbf", 25, 1, null));
+        verify(jdbc, never()).execute(anyString());
     }
 
     @Test

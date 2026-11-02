@@ -64,6 +64,19 @@ class TablespaceControllerTest {
     }
 
     @Test
+    void createsATemporaryTablespace() throws Exception {
+        mvc.perform(post("/api/security/tablespaces")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"temporal","fileName":"temporal.dbf","sizeMb":25,"nextMb":1,"temporary":true}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").value("TEMPORAL"));
+
+        verify(jdbc).execute("CREATE TEMPORARY TABLESPACE TEMPORAL TEMPFILE '"
+                + Path.of(DATAFILE_DIR).resolve("temporal.dbf") + "' SIZE 25M AUTOEXTEND ON NEXT 1M MAXSIZE UNLIMITED");
+    }
+
+    @Test
     void createsATablespace() throws Exception {
         mvc.perform(post("/api/security/tablespaces")
                         .contentType(MediaType.APPLICATION_JSON)

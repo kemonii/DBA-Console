@@ -21,6 +21,7 @@
     <thead>
       <tr>
         <th scope="col">Nombre</th>
+        <th scope="col">Tipo</th>
         <th scope="col" class="number">Total (MB)</th>
         <th scope="col" class="number">Usado (MB)</th>
         <th scope="col" class="number">Libre (MB)</th>
@@ -32,6 +33,7 @@
       @for (tablespace of tablespaces(); track tablespace.name) {
         <tr [class.selected]="tablespace.name === selected()">
           <td>{{ tablespace.name }}</td>
+          <td>{{ contentsLabels[tablespace.contents] }}</td>
           <td class="number">{{ tablespace.totalMb }}</td>
           <td class="number">{{ tablespace.usedMb }}</td>
           <td class="number">{{ tablespace.freeMb }}</td>
@@ -40,14 +42,16 @@
             {{ tablespace.usedPercent }}%
           </td>
           <td class="actions">
-            <button
-              type="button"
-              [attr.data-select]="tablespace.name"
-              [disabled]="busy()"
-              (click)="select(tablespace.name)"
-            >
-              Datafiles
-            </button>
+            @if (tablespace.contents !== 'TEMPORARY') {
+              <button
+                type="button"
+                [attr.data-select]="tablespace.name"
+                [disabled]="busy()"
+                (click)="select(tablespace.name)"
+              >
+                Datafiles
+              </button>
+            }
             <button
               type="button"
               class="danger"
@@ -63,8 +67,8 @@
     </tbody>
   </table>
   <p class="hint">
-    El espacio libre se mide dentro del tamaño asignado; los datafiles autoextensibles aún pueden
-    crecer. Los tablespaces temporales no se muestran.
+    El espacio libre se mide dentro del tamaño asignado; los archivos autoextensibles aún pueden
+    crecer.
   </p>
 }
 
@@ -176,9 +180,17 @@
 
 <h2>Crear un tablespace</h2>
 <p class="hint">
-  El datafile se crea en el <code>DATAFILE_DIR</code> del servidor y crece automáticamente.
+  El archivo (datafile o, si es temporal, tempfile) se crea en el
+  <code>DATAFILE_DIR</code> del servidor y crece automáticamente.
 </p>
 <form (submit)="onCreate($event)" novalidate>
+  <div class="field">
+    <label for="create-type">Tipo</label>
+    <select id="create-type" [formField]="createForm.type">
+      <option value="PERMANENT">Permanente</option>
+      <option value="TEMPORARY">Temporal</option>
+    </select>
+  </div>
   <div class="field">
     <label for="create-name">Nombre</label>
     <input id="create-name" type="text" [formField]="createForm.name" />
@@ -187,7 +199,7 @@
     }
   </div>
   <div class="field">
-    <label for="create-file">Nombre del datafile</label>
+    <label for="create-file">Nombre del archivo</label>
     <input
       id="create-file"
       type="text"
