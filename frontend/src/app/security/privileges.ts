@@ -123,7 +123,7 @@ export class Privileges {
     submit(this.roleForm, async () => {
       const { name } = this.roleModel();
       if (await this.run(() => this.usersApi.createRole(name))) {
-        this.roleModel.set({ name: '' });
+        this.roleForm().reset({ name: '' });
         await this.loadRoles();
       }
     });

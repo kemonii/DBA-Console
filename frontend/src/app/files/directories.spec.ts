@@ -85,6 +85,7 @@ describe('Directories', () => {
 
     await loadDirectories();
     expect(q('.success').textContent).toContain('Directory DUMPS created');
+    expect(root.querySelector('form .error')).toBeNull();
   });
 
   it('does not call the backend when the create form is incomplete', async () => {

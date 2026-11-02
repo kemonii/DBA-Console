@@ -103,7 +103,7 @@ export class Profiles {
       const save = () =>
         target ? this.profilesApi.alter(target, limits) : this.profilesApi.create(name, limits);
       if (await this.run(save)) {
-        this.editModel.set({ target: '', name: '' });
+        this.editForm().reset({ target: '', name: '' });
         this.limitValues.set({});
         await this.load();
       }

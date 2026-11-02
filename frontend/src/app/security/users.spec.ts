@@ -125,6 +125,7 @@ describe('Users', () => {
     await loadUsers();
 
     expect(q('.success').textContent).toContain('User NUEVO created');
+    expect(root.querySelector('form .error')).toBeNull();
   });
 
   it('creates a user with an unlimited quota', async () => {

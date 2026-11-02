@@ -107,6 +107,7 @@ describe('Profiles', () => {
     await loadProfiles();
 
     expect(q('.success').textContent).toContain('Profile SOPORTE created');
+    expect(root.querySelector('form .error')).toBeNull();
   });
 
   it('changes the DEFAULT profile as in class', async () => {

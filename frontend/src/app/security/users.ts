@@ -90,7 +90,7 @@ export class Users {
         request.unlimitedQuota = true;
       }
       if (await this.run(() => this.usersApi.createUser(request))) {
-        this.createModel.set({ ...EMPTY_USER });
+        this.createForm().reset({ ...EMPTY_USER });
         await this.load();
       }
     });
