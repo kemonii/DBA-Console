@@ -90,7 +90,7 @@ export class Users {
         request.unlimitedQuota = true;
       }
       if (await this.run(() => this.usersApi.createUser(request))) {
-        this.createModel.set({ ...EMPTY_USER });
+        this.createForm().reset({ ...EMPTY_USER });
         await this.load();
       }
     });
@@ -140,7 +140,11 @@ export class Users {
   private async loadTablespaces(): Promise<void> {
     try {
       const result = await firstValueFrom(this.tablespacesApi.list());
-      this.tablespaces.set((result.data ?? []).map((tablespace) => tablespace.name));
+      this.tablespaces.set(
+        (result.data ?? [])
+          .filter((tablespace) => tablespace.contents === 'PERMANENT')
+          .map((tablespace) => tablespace.name),
+      );
     } catch {
       this.tablespaces.set([]);
     }

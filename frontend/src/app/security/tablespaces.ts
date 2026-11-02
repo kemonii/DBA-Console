@@ -4,11 +4,17 @@ import { Observable, firstValueFrom } from 'rxjs';
 import { ApiError } from '../core/api-error';
 import { OperationResult } from '../core/operation-result.model';
 import { TablespacesApi } from './tablespaces-api';
-import { Datafile, TablespaceUsage } from './tablespaces.models';
+import { Datafile, TablespaceContents, TablespaceUsage } from './tablespaces.models';
 
 /** A positive whole number of megabytes. */
 const MEGABYTES = /^[1-9]\d*$/;
 const MEGABYTES_OR_EMPTY = /^([1-9]\d*)?$/;
+
+const CONTENTS_LABELS: Record<TablespaceContents, string> = {
+  PERMANENT: 'Permanente',
+  TEMPORARY: 'Temporal',
+  UNDO: 'Undo',
+};
 
 /**
  * Tablespaces screen: list tablespaces with their space usage, create and drop them, and add or
@@ -38,7 +44,10 @@ export class Tablespaces {
   protected readonly datafiles = signal<Datafile[]>([]);
   protected readonly datafilesError = signal('');
 
+  protected readonly contentsLabels = CONTENTS_LABELS;
+
   protected readonly createModel = signal({
+    type: 'PERMANENT',
     name: '',
     fileName: '',
     sizeMb: '100',
@@ -48,7 +57,7 @@ export class Tablespaces {
   protected readonly createForm = form(this.createModel, (schema) => {
     required(schema.name, { message: 'Ingrese un nombre de tablespace' });
     required(schema.fileName, {
-      message: 'Ingrese un nombre de datafile, por ejemplo ventas01.dbf',
+      message: 'Ingrese un nombre de archivo, por ejemplo ventas01.dbf',
     });
     required(schema.sizeMb, { message: 'Ingrese el tamaño inicial' });
     pattern(schema.sizeMb, MEGABYTES, { message: 'Use un número entero de MB' });
@@ -78,16 +87,18 @@ export class Tablespaces {
   protected onCreate(event: Event): void {
     event.preventDefault();
     submit(this.createForm, async () => {
-      const { name, fileName, sizeMb, nextMb, maxSizeMb } = this.createModel();
+      const { type, name, fileName, sizeMb, nextMb, maxSizeMb } = this.createModel();
       const request = {
         name,
         fileName,
         sizeMb: Number(sizeMb),
         nextMb: Number(nextMb),
         ...(maxSizeMb ? { maxSizeMb: Number(maxSizeMb) } : {}),
+        ...(type === 'TEMPORARY' ? { temporary: true } : {}),
       };
       if (await this.run(() => this.tablespacesApi.create(request))) {
-        this.createModel.set({
+        this.createForm().reset({
+          type: 'PERMANENT',
           name: '',
           fileName: '',
           sizeMb: '100',
@@ -132,7 +143,7 @@ export class Tablespaces {
       if (
         await this.run(() => this.tablespacesApi.addDatafile(tablespace, fileName, Number(sizeMb)))
       ) {
-        this.addModel.set({ fileName: '', sizeMb: '100' });
+        this.addForm().reset({ fileName: '', sizeMb: '100' });
         await this.refreshSelected();
       }
     });

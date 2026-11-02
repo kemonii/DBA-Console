@@ -28,12 +28,13 @@ public class TablespaceController {
     }
 
     /**
-     * Request body to create a tablespace with one autoextensible datafile.
+     * Request body to create a tablespace with one autoextensible datafile, or tempfile if it is temporary.
      *
      * @param maxSizeMb omit for {@code MAXSIZE UNLIMITED}
+     * @param temporary true for {@code CREATE TEMPORARY TABLESPACE}
      */
     public record CreateTablespaceRequest(String name, String fileName, Integer sizeMb, Integer nextMb,
-                                          Integer maxSizeMb) {
+                                          Integer maxSizeMb, boolean temporary) {
     }
 
     /** Request body to add a datafile to a tablespace. */
@@ -51,10 +52,13 @@ public class TablespaceController {
     }
 
     @PostMapping
-    @Operation(summary = "Create a tablespace with an autoextensible datafile in DATAFILE_DIR")
+    @Operation(summary = "Create a permanent or temporary tablespace with an autoextensible file in DATAFILE_DIR")
     public OperationResult create(@RequestBody CreateTablespaceRequest request) {
-        String name = tablespaceService.create(
-                request.name(), request.fileName(), request.sizeMb(), request.nextMb(), request.maxSizeMb());
+        String name = request.temporary()
+                ? tablespaceService.createTemporary(
+                        request.name(), request.fileName(), request.sizeMb(), request.nextMb(), request.maxSizeMb())
+                : tablespaceService.create(
+                        request.name(), request.fileName(), request.sizeMb(), request.nextMb(), request.maxSizeMb());
         return OperationResult.ok("Tablespace " + name + " creado", name);
     }
 

@@ -1,6 +1,10 @@
+/** Kind of tablespace, as in `DBA_TABLESPACES.CONTENTS`. */
+export type TablespaceContents = 'PERMANENT' | 'TEMPORARY' | 'UNDO';
+
 /** Size and usage of a tablespace. Mirrors `una.dbadmin.security.tablespaces.TablespaceUsage`. */
 export interface TablespaceUsage {
   name: string;
+  contents: TablespaceContents;
   totalMb: number;
   usedMb: number;
   freeMb: number;
@@ -26,4 +30,6 @@ export interface CreateTablespaceRequest {
   nextMb: number;
   /** Omitted for an unlimited maximum size. */
   maxSizeMb?: number;
+  /** Sent only for a temporary tablespace. */
+  temporary?: boolean;
 }

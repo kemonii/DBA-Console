@@ -23,7 +23,24 @@ const USERS = [
   },
 ];
 const TABLESPACES = [
-  { name: 'USERS', totalMb: 5, usedMb: 1, freeMb: 4, usedPercent: 20, freePercent: 80 },
+  {
+    name: 'USERS',
+    contents: 'PERMANENT',
+    totalMb: 5,
+    usedMb: 1,
+    freeMb: 4,
+    usedPercent: 20,
+    freePercent: 80,
+  },
+  {
+    name: 'TEMP',
+    contents: 'TEMPORARY',
+    totalMb: 20,
+    usedMb: 0,
+    freeMb: 20,
+    usedPercent: 0,
+    freePercent: 100,
+  },
 ];
 const OK = { ok: true, message: 'Done', data: null };
 
@@ -80,7 +97,7 @@ describe('Users', () => {
     );
   });
 
-  it('offers the tablespaces as default tablespace', async () => {
+  it('offers only the permanent tablespaces as default tablespace', async () => {
     await loadUsers();
 
     const options = Array.from(q<HTMLSelectElement>('#create-default').options).map((o) => o.value);
@@ -108,6 +125,7 @@ describe('Users', () => {
     await loadUsers();
 
     expect(q('.success').textContent).toContain('User NUEVO created');
+    expect(root.querySelector('form .error')).toBeNull();
   });
 
   it('creates a user with an unlimited quota', async () => {

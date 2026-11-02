@@ -21,19 +21,25 @@ import una.dbadmin.common.OracleIdentifiers;
 @Service
 public class TablespaceService {
 
-    /** Space usage script from class 4: allocated size from DBA_DATA_FILES, free space from DBA_FREE_SPACE. */
+    /**
+     * Space usage script from class 4: allocated size from DBA_DATA_FILES, free space from DBA_FREE_SPACE. Temporary
+     * tablespaces are in neither view, so their size and free space come from DBA_TEMP_FREE_SPACE.
+     */
     static final String USAGE_QUERY = """
-            SELECT tablespace_name,
+            SELECT u.tablespace_name, t.contents,
                    ROUND(SUM(total_bytes) / 1024 / 1024, 2) AS total_mb,
                    ROUND(SUM(total_bytes - free_bytes) / 1024 / 1024, 2) AS used_mb,
                    ROUND(SUM(free_bytes) / 1024 / 1024, 2) AS free_mb,
-                   ROUND(SUM(total_bytes - free_bytes) * 100 / SUM(total_bytes), 2) AS used_percent,
-                   ROUND(SUM(free_bytes) * 100 / SUM(total_bytes), 2) AS free_percent
+                   ROUND(SUM(total_bytes - free_bytes) * 100 / NULLIF(SUM(total_bytes), 0), 2) AS used_percent,
+                   ROUND(SUM(free_bytes) * 100 / NULLIF(SUM(total_bytes), 0), 2) AS free_percent
               FROM (SELECT tablespace_name, bytes AS total_bytes, 0 AS free_bytes FROM dba_data_files
                     UNION ALL
-                    SELECT tablespace_name, 0 AS total_bytes, bytes AS free_bytes FROM dba_free_space)
-             GROUP BY tablespace_name
-             ORDER BY tablespace_name""";
+                    SELECT tablespace_name, 0 AS total_bytes, bytes AS free_bytes FROM dba_free_space
+                    UNION ALL
+                    SELECT tablespace_name, tablespace_size, free_space FROM dba_temp_free_space) u
+              JOIN dba_tablespaces t ON t.tablespace_name = u.tablespace_name
+             GROUP BY u.tablespace_name, t.contents
+             ORDER BY u.tablespace_name""";
 
     static final String DATAFILES_QUERY = "SELECT file_id, file_name, bytes, autoextensible, maxbytes "
             + "FROM dba_data_files WHERE tablespace_name = ? ORDER BY file_id";
@@ -65,6 +71,7 @@ public class TablespaceService {
         return jdbcTemplate.queryForList(USAGE_QUERY).stream()
                 .map(row -> new TablespaceUsage(
                         String.valueOf(row.get("TABLESPACE_NAME")),
+                        String.valueOf(row.get("CONTENTS")),
                         number(row, "TOTAL_MB"),
                         number(row, "USED_MB"),
                         number(row, "FREE_MB"),
@@ -92,6 +99,21 @@ public class TablespaceService {
      * @return the tablespace name as Oracle stores it (upper case)
      */
     public String create(String name, String fileName, Integer sizeMb, Integer nextMb, Integer maxSizeMb) {
+        return create("TABLESPACE", "DATAFILE", name, fileName, sizeMb, nextMb, maxSizeMb);
+    }
+
+    /**
+     * Runs {@code CREATE TEMPORARY TABLESPACE ... TEMPFILE ... SIZE ... AUTOEXTEND ON NEXT ... MAXSIZE ...}.
+     *
+     * @param maxSizeMb {@code null} for {@code MAXSIZE UNLIMITED}
+     * @return the tablespace name as Oracle stores it (upper case)
+     */
+    public String createTemporary(String name, String fileName, Integer sizeMb, Integer nextMb, Integer maxSizeMb) {
+        return create("TEMPORARY TABLESPACE", "TEMPFILE", name, fileName, sizeMb, nextMb, maxSizeMb);
+    }
+
+    private String create(String kind, String fileKind, String name, String fileName, Integer sizeMb, Integer nextMb,
+                          Integer maxSizeMb) {
         String tablespace = OracleIdentifiers.requireValid(name);
         String path = datafilePath(fileName);
         int size = requireSize(sizeMb, "El tamaño inicial");
@@ -104,7 +126,7 @@ public class TablespaceService {
             }
             maxSize = max + "M";
         }
-        jdbcTemplate.execute("CREATE TABLESPACE " + tablespace + " DATAFILE '" + path + "' SIZE " + size
+        jdbcTemplate.execute("CREATE " + kind + " " + tablespace + " " + fileKind + " '" + path + "' SIZE " + size
                 + "M AUTOEXTEND ON NEXT " + next + "M MAXSIZE " + maxSize);
         return tablespace;
     }
@@ -155,7 +177,7 @@ public class TablespaceService {
     private String datafilePath(String fileName) {
         if (fileName == null || !DATAFILE_NAME.matcher(fileName).matches()) {
             throw new IllegalArgumentException(
-                    "El nombre del datafile debe ser un nombre simple que termine en .dbf, por ejemplo ventas01.dbf");
+                    "El nombre del archivo debe ser un nombre simple que termine en .dbf, por ejemplo ventas01.dbf");
         }
         if (datafileDir == null || datafileDir.isBlank()) {
             throw new IllegalStateException("DATAFILE_DIR no está configurado");
@@ -169,7 +191,7 @@ public class TablespaceService {
 
     private static String requireQuotable(String path) {
         if (path.indexOf('\'') >= 0 || path.chars().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException("La ruta del datafile contiene caracteres no válidos");
+            throw new IllegalArgumentException("La ruta del archivo contiene caracteres no válidos");
         }
         return path;
     }

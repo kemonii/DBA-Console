@@ -52,7 +52,7 @@ export class Directories {
       const { name, path } = this.createModel();
       const done = await this.run(() => this.filesApi.createDirectory(name, path));
       if (done) {
-        this.createModel.set({ name: '', path: '' });
+        this.createForm().reset({ name: '', path: '' });
         await this.load();
       }
     });

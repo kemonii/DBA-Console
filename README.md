@@ -254,14 +254,14 @@ Todas las rutas empiezan por `/api/security/tablespaces` y usan las sentencias d
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/` | Lista los tablespaces con su espacio total, usado y libre en MB (script de uso de la clase 4: `DBA_DATA_FILES` y `DBA_FREE_SPACE`) |
-| `POST` | `/` | `CREATE TABLESPACE ... DATAFILE ... SIZE ... AUTOEXTEND ON NEXT ... MAXSIZE ...`. Cuerpo: `{"name": "VENTAS", "fileName": "ventas01.dbf", "sizeMb": 2, "nextMb": 1, "maxSizeMb": 1024}`; omita `maxSizeMb` para usar `UNLIMITED` |
+| `GET` | `/` | Lista los tablespaces con su espacio total, usado y libre en MB y su tipo (script de uso de la clase 4: `DBA_DATA_FILES` y `DBA_FREE_SPACE`; los temporales salen de `DBA_TEMP_FREE_SPACE`) |
+| `POST` | `/` | `CREATE TABLESPACE ... DATAFILE ... SIZE ... AUTOEXTEND ON NEXT ... MAXSIZE ...`. Cuerpo: `{"name": "VENTAS", "fileName": "ventas01.dbf", "sizeMb": 2, "nextMb": 1, "maxSizeMb": 1024}`; omita `maxSizeMb` para usar `UNLIMITED`. Con `"temporary": true` ejecuta `CREATE TEMPORARY TABLESPACE ... TEMPFILE ...` |
 | `DELETE` | `/{name}?confirm=true` | `DROP TABLESPACE ... INCLUDING CONTENTS AND DATAFILES`; sin `confirm=true` la solicitud se rechaza, y `SYSTEM` y `SYSAUX` siempre se rechazan |
 | `GET` | `/{name}/datafiles` | Lista los datafiles de un tablespace (`DBA_DATA_FILES`) |
 | `POST` | `/{name}/datafiles` | `ALTER TABLESPACE ... ADD DATAFILE ... SIZE ...`. Cuerpo: `{"fileName": "ventas02.dbf", "sizeMb": 256}` |
 | `POST` | `/{name}/datafiles/{fileId}/resize` | `ALTER DATABASE DATAFILE ... RESIZE ...`. Cuerpo: `{"sizeMb": 5}` |
 
-Los datafiles nuevos siempre se crean en `DATAFILE_DIR`: la solicitud indica solo un nombre de archivo simple terminado en `.dbf`, y los nombres con separadores de ruta se rechazan con HTTP 400. Los tamaños son megabytes enteros entre 1 y 32767. El espacio libre se mide dentro del tamaño asignado, así que los datafiles autoextensibles aún pueden crecer; los tablespaces temporales no se listan.
+Los datafiles nuevos siempre se crean en `DATAFILE_DIR`: la solicitud indica solo un nombre de archivo simple terminado en `.dbf`, y los nombres con separadores de ruta se rechazan con HTTP 400. Los tamaños son megabytes enteros entre 1 y 32767. El espacio libre se mide dentro del tamaño asignado, así que los archivos autoextensibles aún pueden crecer. Los tablespaces temporales se crean, listan y eliminan aquí, pero sus tempfiles no se redimensionan ni se agregan desde estas rutas.
 
 ## Endpoints de usuarios, roles, privilegios y perfiles
 

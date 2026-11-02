@@ -107,6 +107,7 @@ describe('Privileges', () => {
     await settle();
 
     expect(q('.success').textContent).toContain('Role COMPRAS_ROL created');
+    expect(root.querySelector('form .error')).toBeNull();
   });
 
   it('asks for confirmation before dropping a role', async () => {
