@@ -9,3 +9,37 @@ body {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
+
+/* Keeps the result of an action in view when the form that ran it is further down the page. */
+.action-messages {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 10;
+}
+
+.action-messages > p {
+  margin: 0 0 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 20%);
+}
+
+.action-messages > .success {
+  background: #f0fdf4;
+}
+
+.action-messages > .error {
+  background: #fef2f2;
+}
+
+/* Keeps the confirmation of a destructive action in view, even when the table above it is long. */
+.confirm,
+.confirmation {
+  position: sticky;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  z-index: 11;
+  background: #fef2f2;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 20%);
+}
