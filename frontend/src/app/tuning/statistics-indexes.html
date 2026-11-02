@@ -1,10 +1,12 @@
 <h2>Estadísticas e índices</h2>
-@if (error()) {
-  <p class="error" role="alert">{{ error() }}</p>
-}
-@if (message()) {
-  <p class="success" role="status">{{ message() }}</p>
-}
+<section class="action-messages" aria-live="polite">
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (message()) {
+    <p class="success" role="status">{{ message() }}</p>
+  }
+</section>
 <form (submit)="load($event)">
   <div class="row">
     <label>Esquema <input [formField]="fields.schema" /></label>
