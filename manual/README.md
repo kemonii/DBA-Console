@@ -1,114 +1,129 @@
-# DBA-Console User Manual
+# Manual de usuario de DBA Console
 
-This manual explains how to use the DBA-Console web interface. At this stage only the **File Management** module is available; the Backup, Tuning, and Security pages are placeholders and show "This module is not implemented yet."
+DBA Console es una aplicación web para administrar Oracle Database 21c Express Edition: respaldos, tunning, seguridad y archivos. Las capturas se tomaron contra una base de datos real; los nombres `DEMO` y `RESPALDO` son ejemplos.
 
-> The screenshots use sample data (directory objects such as `BACKUP_DIR` and the files inside them). Your names, paths, and sizes will differ.
+## Antes de empezar
 
-## Contents
+**Requisitos:** Oracle Database 21c XE, JDK 17 o superior y Node.js con npm. La aplicación debe ejecutarse en el mismo equipo que la base de datos, con `expdp` e `impdp` disponibles en el `PATH`.
 
-1. [Before you start](#before-you-start)
-2. [The main window](#the-main-window)
-3. [File Management: Directories](#file-management-directories)
-4. [File Management: Backup files](#file-management-backup-files)
-5. [Messages and troubleshooting](#messages-and-troubleshooting)
+1. Copie `.env.example` como `.env` en la raíz del proyecto y complete `DB_URL` (servicio `XEPDB1`), `DB_USER`, `DB_PASS` y `DATAFILE_DIR`. En Windows, escriba las rutas con barras normales (`C:/...`).
+2. Inicie el backend desde la raíz del proyecto: `.\mvnw.cmd spring-boot:run` (en Linux, `./mvnw spring-boot:run`).
+3. En otra terminal, inicie el frontend: `cd frontend`, `npm install` y `npm start`.
+4. Abra <http://localhost:4200>.
 
-## Before you start
+## La ventana principal
 
-- The backend must be running and able to reach the Oracle database. See the [README](../README.md) for configuration and startup.
-- Start the frontend from the `frontend/` folder with `npm start`, then open <http://localhost:4200>.
-- The files shown in File Management live on the **database server**, not on your computer. Paths you type are paths on that server.
+- **Encabezado:** muestra *Conectado* si el backend alcanza la base de datos, o *Desconectado* si no; pase el cursor sobre el indicador para ver el motivo. Se actualiza cada 30 segundos o al pulsar **Verificar de nuevo**.
+- **Menú lateral:** **Respaldos**, **Tunning**, **Seguridad** y **Archivos**. Cada módulo se divide en pestañas.
+- **Mensajes:** en verde si la operación terminó bien y en rojo si falló. Los errores incluyen el motivo que devuelve Oracle.
+- **Confirmaciones:** las acciones destructivas piden confirmación antes de ejecutarse.
 
-## The main window
+![Pestaña Respaldo](img/01-respaldo.png)
 
-The window has three areas:
+## Respaldos
 
-- **Header**: the application name and the connection indicator. *Connected* (green) means the backend can reach the database. *Disconnected* means it cannot; hover over the indicator to see the reason. Press **Recheck** to test again. The indicator also refreshes itself every 30 seconds.
-- **Side menu**: Backup, Tuning, Security, Files, and Example. The current module is highlighted.
-- **Content area**: the screen of the selected module.
+### Respaldo
 
-Open **Files** in the side menu to reach File Management. It has two tabs, **Directories** and **Backup files**.
+Crea una exportación con Data Pump (`expdp`).
 
-## File Management: Directories
+1. En **Alcance**, elija **Schemas**, **Tablas** o **Full** (toda la base de datos).
+2. Complete **Esquema** y **Tabla** si se piden, el **Objeto directorio** donde se guardará y el **Nombre del archivo**, sin extensión.
+3. En **Schemas** y **Full**, la lista **Tablas** permite incluir o excluir tablas; escriba sus nombres separados por comas.
+4. Pulse **Respaldo** y mantenga la página abierta. Al terminar se muestran el comando y la salida; **Ver log** abre el archivo de log.
 
-Open **Files → Directories**. This screen manages Oracle *directory objects*: named pointers from the database to a folder on the server. Data Pump exports write their `.dmp` and `.log` files into these folders.
+### Recuperación
 
-![Directories screen](img/01-directories.png)
+Restaura un respaldo con `impdp`, con los mismos campos. Si la tabla o el esquema ya existe, la operación se rechaza: elimínelo antes de recuperarlo.
 
-### Review the existing directories
+> **Full** sobrescribe toda la base de datos y exige marcar una casilla de confirmación. No la use en una demostración.
 
-The **Directory objects** table lists each directory's **Name** and **Path**. If none exist, the screen says so and you can create one below.
+### Flashback
 
-### Create a directory object
+- **Flashback de tabla:** indique **Esquema** y **Tabla** y pulse **Restaurar tabla** para recuperarla de la papelera de reciclaje.
+- **Consulta flashback:** indique también **Fecha y hora**. **Ver filas** muestra las filas de ese momento (hasta 100) y **Restaurar filas faltantes** inserta las que ahora no están.
 
-1. In **Name**, type the directory object name (for example `EXPORT_DIR`).
-2. In **Path on the database host**, type the absolute folder path on the database server (for example `/opt/oracle/exports`).
-3. Press **Create**.
+## Tunning
 
-The new directory appears in the table and a green confirmation message is shown above it. If a field is empty or invalid, a red message appears under that field and nothing is created.
+### Plan de ejecución
 
-![A directory was created](img/03-directory-created.png)
+Escriba una sentencia SQL y pulse **Generar plan**. La sentencia no se ejecuta: el plan es una estimación. Las filas resaltadas indican un recorrido completo de la tabla (`TABLE ACCESS FULL`).
 
-> Creating a directory object does not create the folder on disk. The folder must already exist on the database server.
+![Plan de ejecución](img/02-plan.png)
 
-### Drop a directory object
+### Estadísticas e índices
 
-1. Press **Drop** on the row you want to remove.
-2. A confirmation box appears. Read it, then press **Drop directory** to continue or **Cancel** to keep it.
+1. Escriba el **Esquema** y pulse **Cargar estadísticas e índices**.
+2. Pulse **Recopilar estadísticas** para actualizarlas: de la tabla si completó **Tabla**, o de todo el esquema si no.
+3. En **Crear índice**, indique la tabla, el nombre, las columnas separadas por comas y el tipo (**Árbol B** o **Bitmap**).
+4. En cada índice puede usar **Reconstruir**, **Validar estructura** o **Eliminar**.
 
-![Confirm dropping a directory](img/02-drop-confirm.png)
+### Monitoreo
 
-Dropping removes only the directory object. The files on disk are **not** deleted, but the database can no longer reach them through that directory.
+Elija una **Vista** (estado de la instancia, parámetros, sesiones, bloqueos u objetos bloqueados) y pulse **Actualizar** para refrescarla. En **Bloqueos**, **Terminar sesión bloqueadora** cierra la sesión que retiene el bloqueo, tras confirmar; Oracle revierte el trabajo no confirmado de esa sesión.
 
-### Grant or revoke access
+![Monitoreo](img/03-monitoreo.png)
 
-The **Access** section controls which database users can read and write in a directory.
+## Seguridad
 
-1. Choose the **Directory** from the list.
-2. Type the database **User** (for example `HR`).
-3. Press **Grant** to give the user READ and WRITE, or **Revoke** to remove them.
+### Tablespaces
 
-A confirmation message is shown after each action.
+La tabla muestra el tipo y el uso de espacio de cada tablespace.
 
-![Access granted](img/07-grant-access.png)
+![Tablespaces](img/04-tablespaces.png)
 
-## File Management: Backup files
+- **Crear:** en **Crear un tablespace**, elija **Permanente** o **Temporal**, el nombre, el archivo y los tamaños. El archivo se crea en `DATAFILE_DIR`.
+- **Datafiles:** muestra los archivos de un tablespace y permite redimensionarlos o agregar otro. Este botón no aparece en los temporales.
+- **Eliminar:** Oracle rechaza la eliminación del tablespace temporal por defecto de la base de datos.
 
-Use this screen to see the `.dmp` (dump) and `.log` files inside a directory, read export logs, and remove files you no longer need. There are two ways in:
+### Usuarios
 
-- From **Directories**, press **Files** on a row. The directory is already selected.
-- Open the **Backup files** tab and choose a directory from the **Directory** list.
+Lista los usuarios creados por administradores; los de Oracle, como `SYS` y `SYSTEM`, no aparecen.
 
-![Backup files, no directory selected](img/08-browse-select.png)
+![Usuarios](img/05-usuarios.png)
 
-Until you choose a directory the screen shows "Select a directory to see its files."
+- **Crear un usuario:** indique nombre, contraseña, tablespaces, perfil y cuota. Un usuario nuevo no puede iniciar sesión hasta tener el privilegio `CREATE SESSION`.
+- **Privilegios:** abre los permisos de ese usuario. **Bloquear** o **Desbloquear** cambia el estado de la cuenta.
+- **Eliminar:** puede borrar también sus objetos si marca la opción `CASCADE`.
 
-### Review the files
+### Roles y privilegios
 
-The table lists each file's **Name**, **Size**, and **Last modified** date. Only `.dmp` and `.log` files are shown. If there are none, the screen says "This directory has no .dmp or .log files."
+1. Escriba el **Usuario o rol** y pulse **Mostrar privilegios** para ver sus privilegios de sistema, roles y privilegios sobre objetos. Cada fila se puede revocar.
+2. En **Otorgar**, elija en **Qué otorgar** un privilegio de sistema, un rol o privilegios sobre un objeto.
+3. En **Roles**, cree o elimine roles propios. Los mantenidos por Oracle se pueden otorgar, pero no eliminar.
 
-![Files in a directory](img/04-backup-files.png)
+### Perfiles
 
-### Read a log
+En **Crear o modificar un perfil**, complete solo los límites que quiera establecer: un número entero, `UNLIMITED` o `DEFAULT`. Luego use **Asignar un perfil a un usuario**.
 
-Log files have a **View** button. Press it to open the log below the table. If the file is large, only its beginning is shown and a warning says so. Press **Close** to hide it.
+### Auditoría
 
-![Log viewer](img/05-log-viewer.png)
+El parámetro `audit_trail` debe valer `DB`; si no, la pantalla indica cómo activarlo, y el registro queda vacío hasta reiniciar la base de datos.
 
-### Delete a file
+- **Auditoría de sesiones:** activa o desactiva el registro de inicios de sesión.
+- **Auditoría de tablas:** indique propietario, tabla y acciones y pulse **Auditar tabla**. **Detener** la desactiva.
+- **Registro de auditoría:** elija qué **Mostrar** y cuántas **Filas**, y pulse **Leer registro**.
 
-1. Press **Delete** on the file's row.
-2. Confirm with **Delete file**, or press **Cancel** to keep it.
+## Archivos
 
-![Confirm deleting a file](img/06-delete-confirm.png)
+### Directorios
 
-**Deleting removes the file from the server and cannot be undone.** Make sure you have another copy of any backup you still need.
+Un objeto directorio es un nombre de Oracle que apunta a una carpeta del servidor. Los respaldos guardan allí sus archivos.
 
-## Messages and troubleshooting
+1. En **Crear un objeto directorio**, escriba el **Nombre** y la **Ruta** y pulse **Crear**. La carpeta debe existir: Oracle no la crea.
+2. En **Acceso**, elija el **Directorio**, escriba el **Usuario** y pulse **Otorgar** o **Revocar** para dar o quitar `READ` y `WRITE`.
+3. **Eliminar** borra el objeto directorio, pero no los archivos en disco.
 
-| What you see | What it means | What to do |
-|---|---|---|
-| Green message after an action | The operation succeeded. | Nothing. |
-| Red message above or under a field | The operation failed or the input is invalid. The text comes from the server. | Read the message and correct the input. |
-| "Cannot reach the server. Check that the backend is running." | The frontend cannot contact the backend. | Start the backend, then press **Recheck**. |
-| Header shows *Disconnected* | The backend is up but cannot reach Oracle. | Check `DB_URL`, `DB_USER`, and `DB_PASS`, and that the database is running. |
-| "Loading..." stays on screen | The request is still in progress or was interrupted. | Wait a few seconds, then reload the page. |
+### Archivos de respaldo
+
+Elija un **Directorio** para ver sus archivos `.dmp` y `.log`, o pulse **Archivos** en una fila de **Directorios**. **Ver** abre un log. **Eliminar** borra el archivo del servidor y no se puede deshacer.
+
+![Archivos de respaldo](img/06-archivos.png)
+
+## Problemas frecuentes
+
+| Qué ve | Qué hacer |
+|---|---|
+| Indicador en *Desconectado* | Compruebe que Oracle esté activo y revise `DB_URL`, `DB_USER` y `DB_PASS`. |
+| "No se puede conectar con el servidor" | Inicie el backend y pulse **Verificar de nuevo**. |
+| `ORA-00942: la tabla o vista no existe` | Revise el esquema y la tabla: no existen o el nombre está mal escrito. |
+| Falla un respaldo o una recuperación | Compruebe que el objeto directorio exista, que su carpeta exista y que `expdp` e `impdp` estén en el `PATH`. |
