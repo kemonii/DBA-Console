@@ -177,7 +177,7 @@ public class TablespaceService {
     private String datafilePath(String fileName) {
         if (fileName == null || !DATAFILE_NAME.matcher(fileName).matches()) {
             throw new IllegalArgumentException(
-                    "El nombre del datafile debe ser un nombre simple que termine en .dbf, por ejemplo ventas01.dbf");
+                    "El nombre del archivo debe ser un nombre simple que termine en .dbf, por ejemplo ventas01.dbf");
         }
         if (datafileDir == null || datafileDir.isBlank()) {
             throw new IllegalStateException("DATAFILE_DIR no está configurado");
@@ -191,7 +191,7 @@ public class TablespaceService {
 
     private static String requireQuotable(String path) {
         if (path.indexOf('\'') >= 0 || path.chars().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException("La ruta del datafile contiene caracteres no válidos");
+            throw new IllegalArgumentException("La ruta del archivo contiene caracteres no válidos");
         }
         return path;
     }

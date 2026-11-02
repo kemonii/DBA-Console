@@ -177,6 +177,7 @@ describe('Tablespaces', () => {
     await loadTablespaces();
 
     expect(q<HTMLSelectElement>('#create-type').value).toBe('PERMANENT');
+    expect(root.querySelector('form .error')).toBeNull();
   });
 
   it('leaves the maximum size out when it is empty', async () => {
@@ -287,6 +288,7 @@ describe('Tablespaces', () => {
       .flush({ ok: true, message: 'ok', data: DATAFILES });
     await settle();
     expect(q('.success').textContent).toContain('Datafile added');
+    expect(root.querySelector('form .error')).toBeNull();
   });
 
   it('shows the backend message when an action fails', async () => {

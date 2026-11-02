@@ -57,7 +57,7 @@ export class Tablespaces {
   protected readonly createForm = form(this.createModel, (schema) => {
     required(schema.name, { message: 'Ingrese un nombre de tablespace' });
     required(schema.fileName, {
-      message: 'Ingrese un nombre de datafile, por ejemplo ventas01.dbf',
+      message: 'Ingrese un nombre de archivo, por ejemplo ventas01.dbf',
     });
     required(schema.sizeMb, { message: 'Ingrese el tamaño inicial' });
     pattern(schema.sizeMb, MEGABYTES, { message: 'Use un número entero de MB' });
@@ -97,7 +97,7 @@ export class Tablespaces {
         ...(type === 'TEMPORARY' ? { temporary: true } : {}),
       };
       if (await this.run(() => this.tablespacesApi.create(request))) {
-        this.createModel.set({
+        this.createForm().reset({
           type: 'PERMANENT',
           name: '',
           fileName: '',
@@ -143,7 +143,7 @@ export class Tablespaces {
       if (
         await this.run(() => this.tablespacesApi.addDatafile(tablespace, fileName, Number(sizeMb)))
       ) {
-        this.addModel.set({ fileName: '', sizeMb: '100' });
+        this.addForm().reset({ fileName: '', sizeMb: '100' });
         await this.refreshSelected();
       }
     });
